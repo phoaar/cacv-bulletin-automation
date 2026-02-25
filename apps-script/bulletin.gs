@@ -279,11 +279,12 @@ function nextService() {
     }
   }
 
-  // ── 4. Clear Order of Service (all data rows) ──────────────────────────────
+  // ── 4. Clear Order of Service details only (col C) ────────────────────────
+  // Keep the service items (col A=# col B=Item col D=Type) — only clear Details
   var orderSheet = ss.getSheetByName('🗓 Order of Service');
   var orderLastRow = orderSheet.getLastRow();
   if (orderLastRow > 4) {
-    orderSheet.getRange(5, 1, orderLastRow - 4, orderSheet.getLastColumn()).clearContent();
+    orderSheet.getRange(5, 3, orderLastRow - 4, 1).clearContent();
   }
 
   // ── 5. Announcements: delete rows where "Keep next week?" (col D) ≠ "Yes" ──
