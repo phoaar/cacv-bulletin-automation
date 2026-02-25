@@ -68,7 +68,6 @@ async function fetchBulletinData(sheetId) {
   // Columns: # | Service Item | Detail (optional) | Type
   // Type values from sheet: General, Worship, Scripture, Sermon, Prayer
   // We map Scripture and Sermon → 'focus' to highlight those rows.
-  const focusTypes = new Set(['scripture', 'sermon']);
   const orderRows = await getRange(sheets, sheetId, '🗓 Order of Service!A:D');
   const order = orderRows
     .slice(4)
@@ -77,7 +76,7 @@ async function fetchBulletinData(sheetId) {
       step:   (r[0] || '').trim(),
       item:   (r[1] || '').trim(),
       detail: (r[2] || '').trim(),
-      type:   focusTypes.has((r[3] || '').trim().toLowerCase()) ? 'focus' : '',
+      type:   (r[3] || '').trim().toLowerCase(), // e.g. 'scripture', 'sermon', 'general'
     }));
 
   // ── 3. ANNOUNCEMENTS ────────────────────────────────────────────────────────

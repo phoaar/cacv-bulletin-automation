@@ -68,10 +68,11 @@ function buildOrder(order) {
   if (!order || order.length === 0) return '<li class="order-row"><div class="order-idx">—</div><span class="order-name">No items listed</span></li>';
 
   return order.map((item, i) => {
-    const focusClass = item.type === 'focus' ? ' focus' : '';
+    const isFocus = item.type === 'scripture' || item.type === 'sermon';
+    const focusClass = isFocus ? ' focus' : '';
     const sub = item.detail ? `<span class="order-sub">${esc(item.detail)}</span>` : '';
-    // Add bible buttons for scripture rows that have a reference in the detail field
-    const bibleButtons = (item.type === 'focus' && item.detail) ? `<span class="bible-btns-sm">
+    // Bible buttons only on scripture rows with a passage in the detail field
+    const bibleButtons = (item.type === 'scripture' && item.detail) ? `<span class="bible-btns-sm">
         <a class="bible-btn-sm" href="${bibleGatewayUrl(item.detail)}" target="_blank" rel="noopener">BibleGateway</a>
         <a class="bible-btn-sm" href="${youVersionUrl(item.detail)}" target="_blank" rel="noopener">YouVersion</a>
       </span>` : '';
