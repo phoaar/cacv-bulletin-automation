@@ -1,0 +1,17 @@
+{
+  "name": "cacv-bulletin-automation",
+  "version": "1.0.0",
+  "description": "Automated bulletin generation for CACV — Google Sheets → HTML",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "googleapis": "^171.4.0"
+  }
+}
