@@ -16,7 +16,7 @@ function onOpen() {
     .createMenu('📋 Bulletin')
     .addItem('⚡ Generate Now',              'generateNow')
     .addSeparator()
-    .addItem('🗓 New Week',                  'newWeek')
+    .addItem('🗓 Next Service',               'nextService')
     .addSeparator()
     .addItem('🕐 Schedule for This Week',    'scheduleForThisWeek')
     .addItem('📅 Schedule for Custom Date',  'scheduleCustom')
@@ -128,58 +128,97 @@ function generateNow() {
   }
 }
 
-// ── NEW WEEK ─────────────────────────────────────────────────────────────────
+// ── NEXT SERVICE ─────────────────────────────────────────────────────────────
 
-function newWeek() {
+function nextService() {
   var ui  = SpreadsheetApp.getUi();
   var ss  = SpreadsheetApp.getActive();
 
   var currentDateStr = getServiceDate();
+  var currentDate    = getServiceDateRaw();
+
+  // Always advance to the next Sunday after the current service date.
+  // Works automatically for all cases:
+  //   Sunday (normal week) → +7 days
+  //   Friday (Good Friday) → +2 days (Easter Sunday)
+  //   Wednesday/Thursday (Christmas) → next Sunday
+  var dayOfWeek        = currentDate.getDay(); // 0=Sun, 1=Mon … 6=Sat
+  var daysToNextSunday = dayOfWeek === 0 ? 7 : (7 - dayOfWeek);
+  var newDate          = new Date(currentDate.getTime() + daysToNextSunday * 24 * 60 * 60 * 1000);
+  var newDateStr       = Utilities.formatDate(newDate, TIMEZONE, 'EEEE d MMMM yyyy');
+
   var result = ui.alert(
-    '🗓 New Week',
-    'This will prepare the sheet for the next week:\n\n' +
-    '• Advance Service Date by 7 days\n' +
-    '• Clear sermon, team, and Order of Service\n' +
+    '🗓 Next Service',
+    'This will prepare the sheet for the next service:\n\n' +
+    '• Set Service Date to ' + newDateStr + '\n' +
+    '• Auto-fill service team from Roster\n' +
+    '• Clear sermon and Order of Service\n' +
     '• Delete announcements not marked "Keep next week?"\n' +
     '• Delete prayer items not marked "Keep next week?"\n' +
-    '• Remove the top roster row (current week)\n\n' +
+    '• Remove the top roster row (current service)\n\n' +
     'Current date: ' + currentDateStr + '\n\nContinue?',
     ui.ButtonSet.OK_CANCEL
   );
   if (result !== ui.Button.OK) return;
 
-  // ── 1. Advance service date by 7 days ──────────────────────────────────────
+  // ── 1. Advance service date to next Sunday ─────────────────────────────────
   var detailSheet = ss.getSheetByName('📋 Service Details');
-  var currentDate = getServiceDateRaw();
-  var newDate     = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000);
   detailSheet.getRange('B6').setValue(newDate);
 
-  // ── 2. Clear per-service fields in Service Details ─────────────────────────
-  // Find and clear: Sermon Title, Scripture Reference, Preacher, Chairperson,
-  // Worship Leader, Music / Band, PowerPoint, PA / Sound, Chief Usher, Ushers,
-  // Attendance (English), Attendance (Chinese), Attendance (Children's)
+  // ── 2. Read next week's team from the SECOND roster row (row after current) ─
+  // We read before deleting the top row, so the upcoming week is row index 1
+  // (0-indexed from data rows starting at sheet row 5).
+  // Roster columns: A=Date B=Preacher C=Chair D=Worship E=Music F=PP G=PA H=ChiefUsher I=Ushers
+  var rosterSheet   = ss.getSheetByName('👥 Roster');
+  var rosterLastRow = rosterSheet.getLastRow();
+  var upcomingTeam  = {};
+  if (rosterLastRow >= 6) {
+    // Row 6 is the second data row — the upcoming service after current
+    var upcomingRow = rosterSheet.getRange(6, 1, 1, 9).getValues()[0];
+    upcomingTeam = {
+      'Preacher':       String(upcomingRow[1] || '').trim(),
+      'Chairperson':    String(upcomingRow[2] || '').trim(),
+      'Worship Leader': String(upcomingRow[3] || '').trim(),
+      'Music / Band':   String(upcomingRow[4] || '').trim(),
+      'PowerPoint':     String(upcomingRow[5] || '').trim(),
+      'PA / Sound':     String(upcomingRow[6] || '').trim(),
+      'Chief Usher':    String(upcomingRow[7] || '').trim(),
+      'Ushers':         String(upcomingRow[8] || '').trim(),
+    };
+  }
+
+  // ── 3. Clear sermon fields; auto-fill team from roster; clear attendance ───
+  // Clear: Sermon Title, Scripture Reference, Attendance fields
+  // Auto-fill from roster: Preacher, Chairperson, Worship Leader, Music/Band, PP, PA, Chief Usher, Ushers
   var clearFields = [
-    'Sermon Title', 'Scripture Reference', 'Preacher', 'Chairperson',
-    'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound',
-    'Chief Usher', 'Ushers', 'Attendance (English)', 'Attendance (Chinese)',
-    "Attendance (Children's)"
+    'Sermon Title', 'Scripture Reference',
+    'Attendance (English)', 'Attendance (Chinese)', "Attendance (Children's)"
+  ];
+  var teamFields = [
+    'Preacher', 'Chairperson', 'Worship Leader', 'Music / Band',
+    'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers'
   ];
   var detailData = detailSheet.getRange('A:B').getValues();
   for (var i = 0; i < detailData.length; i++) {
     var label = String(detailData[i][0]).trim();
     if (clearFields.indexOf(label) !== -1) {
       detailSheet.getRange(i + 1, 2).clearContent();
+    } else if (teamFields.indexOf(label) !== -1) {
+      var val = upcomingTeam[label];
+      if (val !== undefined) {
+        detailSheet.getRange(i + 1, 2).setValue(val || '');
+      }
     }
   }
 
-  // ── 3. Clear Order of Service (all data rows) ──────────────────────────────
+  // ── 4. Clear Order of Service (all data rows) ──────────────────────────────
   var orderSheet = ss.getSheetByName('🗓 Order of Service');
   var orderLastRow = orderSheet.getLastRow();
   if (orderLastRow > 4) {
     orderSheet.getRange(5, 1, orderLastRow - 4, orderSheet.getLastColumn()).clearContent();
   }
 
-  // ── 4. Announcements: delete rows where "Keep next week?" (col D) ≠ "Yes" ──
+  // ── 5. Announcements: delete rows where "Keep next week?" (col D) ≠ "Yes" ──
   // Columns: A=# B=Title C=Body D=Keep? E=Language
   var announceSheet = ss.getSheetByName('📢 Announcements');
   var announceLastRow = announceSheet.getLastRow();
@@ -200,7 +239,7 @@ function newWeek() {
     }
   }
 
-  // ── 5. Prayer Items: delete rows where "Keep next week?" (col C) ≠ "Yes" ───
+  // ── 6. Prayer Items: delete rows where "Keep next week?" (col C) ≠ "Yes" ───
   // Columns: A=Group B=Point C=Keep?
   var prayerSheet = ss.getSheetByName('🙏 Prayer Items');
   var prayerLastRow = prayerSheet.getLastRow();
@@ -220,25 +259,24 @@ function newWeek() {
     }
   }
 
-  // ── 6. Remove first data row from Roster (current week) ───────────────────
-  var rosterSheet = ss.getSheetByName('👥 Roster');
-  var rosterLastRow = rosterSheet.getLastRow();
+  // ── 7. Remove first data row from Roster (current service) ───────────────
   if (rosterLastRow >= 5) {
     // Row 5 is the first data row (rows 1-4 are header/instructions)
     rosterSheet.deleteRow(5);
   }
 
-  // ── 7. Re-apply colour highlights ─────────────────────────────────────────
+  // ── 8. Re-apply colour highlights ─────────────────────────────────────────
   highlightNewWeekFields();
 
-  // ── 8. Summary ────────────────────────────────────────────────────────────
-  var newDateStr = Utilities.formatDate(newDate, TIMEZONE, 'EEEE d MMMM yyyy');
+  // ── 9. Summary ────────────────────────────────────────────────────────────
+  var teamFilled = Object.keys(upcomingTeam).filter(function(k) { return upcomingTeam[k]; }).length;
   ui.alert(
-    '✓ New Week Started',
-    'New week started — ' + newDateStr + '\n\n' +
+    '✓ Next Service Ready',
+    'Next service: ' + newDateStr + '\n\n' +
+    teamFilled + ' service team field(s) auto-filled from roster.\n' +
     keptAnnouncements + ' announcement(s) carried forward, ' + deletedAnnouncements + ' removed.\n' +
     keptPrayer + ' prayer item(s) carried forward, ' + deletedPrayer + ' removed.\n\n' +
-    'Don\'t forget to fill in the sermon details, team, and Order of Service!',
+    'Still needed: Sermon Title, Scripture Reference, Order of Service.',
     ui.ButtonSet.OK
   );
 }
