@@ -142,7 +142,19 @@ async function fetchBulletinData(sheetId) {
       responsible: (r[3] || '').trim(),
     }));
 
-  return { service, order, announcements, prayer, roster, events };
+  // ── 7. SETTINGS ─────────────────────────────────────────────────────────────
+  // Simple key-value tab. We look for the "Notification Emails" row.
+  let notificationEmails = [];
+  try {
+    const settingsRows = await getRange(sheets, sheetId, '⚙️ Settings!A:B');
+    const settings = toKV(settingsRows);
+    const emailStr = settings['Notification Emails'] || '';
+    notificationEmails = emailStr.split(',').map(e => e.trim()).filter(Boolean);
+  } catch (e) {
+    // Settings tab doesn't exist yet — not a fatal error
+  }
+
+  return { service, order, announcements, prayer, roster, events, notificationEmails };
 }
 
 module.exports = { fetchBulletinData };

@@ -7,6 +7,11 @@ const path = require('path');
 const { fetchBulletinData } = require('./sheets');
 const { translateData }     = require('./translate');
 const { buildBulletin }     = require('./template');
+const { validateBulletin }  = require('./validate');
+const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
+
+// GitHub Pages URL for the live bulletin
+const LIVE_URL = process.env.LIVE_URL || 'https://phoaar.github.io/cacv-bulletin-automation/';
 
 async function main() {
   // ── Validate env ───────────────────────────────────────────────────────────
@@ -40,6 +45,17 @@ async function main() {
     console.warn('');
   }
 
+  // ── Validate required fields ───────────────────────────────────────────────
+  const validationIssues = validateBulletin(data);
+  const translationIssues = failures.map(f => `Translation failed — ${f.field}: ${f.reason}`);
+  const allIssues = [...validationIssues, ...translationIssues];
+
+  if (validationIssues.length > 0) {
+    console.warn(`\n⚠️  ${validationIssues.length} validation issue(s):`);
+    validationIssues.forEach(i => console.warn(`   • ${i}`));
+    console.warn('');
+  }
+
   // ── Build HTML ────────────────────────────────────────────────────────────
   console.log('Building HTML…');
   const html = buildBulletin(data, failures);
@@ -48,13 +64,28 @@ async function main() {
   const outputDir = path.join(__dirname, '..', 'output');
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-  // Derive a filename from the service date (e.g. "22nd February 2026" → "20260222")
   const dateSlug = slugifyDate(data.service.date);
   const filename = `bulletin-${dateSlug}.html`;
   const outputPath = path.join(outputDir, filename);
 
   fs.writeFileSync(outputPath, html, 'utf8');
   console.log(`\nDone! Bulletin written to:\n  ${outputPath}\n`);
+
+  // ── Send notifications ─────────────────────────────────────────────────────
+  const to = data.notificationEmails || [];
+  const serviceDate = data.service.date || 'Unknown date';
+
+  if (canSendEmail()) {
+    if (allIssues.length > 0) {
+      console.log('Sending failure notification…');
+      await notifyFailures({ to, serviceDate, liveUrl: LIVE_URL, issues: allIssues });
+    } else {
+      console.log('Sending success notification…');
+      await notifySuccess({ to, serviceDate, liveUrl: LIVE_URL });
+    }
+  } else {
+    console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
+  }
 }
 
 /**
