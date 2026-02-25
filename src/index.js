@@ -32,11 +32,17 @@ async function main() {
   const rawData = await fetchBulletinData(sheetId);
 
   // ── Translate Chinese content ───────────────────────────────────────────────
-  const data = await translateData(rawData);
+  const { data, failures } = await translateData(rawData);
+
+  if (failures.length > 0) {
+    console.warn(`\n⚠️  ${failures.length} translation(s) failed:`);
+    failures.forEach(f => console.warn(`   • ${f.field}: ${f.reason}`));
+    console.warn('');
+  }
 
   // ── Build HTML ────────────────────────────────────────────────────────────
   console.log('Building HTML…');
-  const html = buildBulletin(data);
+  const html = buildBulletin(data, failures);
 
   // ── Write output ──────────────────────────────────────────────────────────
   const outputDir = path.join(__dirname, '..', 'output');

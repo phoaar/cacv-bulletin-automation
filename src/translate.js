@@ -3,6 +3,7 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
 let client;
+const failures = [];
 
 function getClient() {
   if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -18,9 +19,9 @@ function isChinese(text) {
 
 /**
  * Translate a single string using Claude Haiku.
- * Returns the original text if translation fails.
+ * Returns the original text and records the failure if translation fails.
  */
-async function translateText(text) {
+async function translateText(text, fieldLabel) {
   try {
     const response = await getClient().messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -32,7 +33,9 @@ async function translateText(text) {
     });
     return response.content[0].text.trim();
   } catch (err) {
-    console.warn(`Translation failed, using original text. Error: ${err.message}`);
+    const reason = err.message || 'Unknown error';
+    console.warn(`Translation failed for "${fieldLabel}": ${reason}`);
+    failures.push({ field: fieldLabel, reason });
     return text;
   }
 }
@@ -40,43 +43,47 @@ async function translateText(text) {
 /**
  * Translate text only if it contains Chinese — otherwise return as-is.
  */
-async function translateIfChinese(text) {
+async function translateIfChinese(text, fieldLabel) {
   if (!text || !isChinese(text)) return text;
-  return translateText(text);
+  return translateText(text, fieldLabel);
 }
 
 /**
  * Translate all Chinese fields in the announcements and prayer items arrays.
  * Runs all translations in parallel for speed.
+ * Returns { data, failures } — failures is an array of { field, reason }.
  */
 async function translateData(data) {
+  failures.length = 0; // reset
+
   if (!process.env.ANTHROPIC_API_KEY) {
     console.log('ANTHROPIC_API_KEY not set — skipping translation.');
-    return data;
+    return { data, failures: [] };
   }
 
   console.log('Translating Chinese content…');
 
   // ── Announcements ───────────────────────────────────────────────────────────
   const translatedAnnouncements = await Promise.all(
-    data.announcements.map(async (a) => ({
-      title: await translateIfChinese(a.title),
-      body:  await translateIfChinese(a.body),
+    data.announcements.map(async (a, i) => ({
+      title: await translateIfChinese(a.title, `Announcement ${i + 1} title`),
+      body:  await translateIfChinese(a.body,  `Announcement ${i + 1} body`),
     }))
   );
 
   // ── Prayer Items ────────────────────────────────────────────────────────────
   const translatedPrayer = await Promise.all(
-    data.prayer.map(async (group) => ({
-      group:  await translateIfChinese(group.group),
-      points: await Promise.all(group.points.map(p => translateIfChinese(p))),
+    data.prayer.map(async (group, gi) => ({
+      group:  await translateIfChinese(group.group, `Prayer group ${gi + 1} name`),
+      points: await Promise.all(
+        group.points.map((p, pi) => translateIfChinese(p, `Prayer group ${gi + 1} point ${pi + 1}`))
+      ),
     }))
   );
 
   return {
-    ...data,
-    announcements: translatedAnnouncements,
-    prayer:        translatedPrayer,
+    data: { ...data, announcements: translatedAnnouncements, prayer: translatedPrayer },
+    failures: [...failures],
   };
 }
 

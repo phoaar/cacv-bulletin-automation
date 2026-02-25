@@ -189,7 +189,7 @@ function buildEvents(events) {
 /**
  * Build the full bulletin HTML from the structured data object.
  */
-function buildBulletin(data) {
+function buildBulletin(data, failures) {
   const { service, order, announcements, prayer, roster, events } = data;
 
   const engAtt  = service.attendanceEng   || '—';
@@ -945,6 +945,20 @@ function buildBulletin(data) {
 </style>
 </head>
 <body>
+
+${failures && failures.length > 0 ? `
+<!-- TRANSLATION WARNING BANNER -->
+<div style="background:#7C3C3C;color:#fff;padding:14px 28px;font-family:'Instrument Sans',sans-serif;font-size:13.5px;line-height:1.6;display:flex;gap:12px;align-items:flex-start;">
+  <span style="font-size:18px;flex-shrink:0;">⚠️</span>
+  <div>
+    <strong>Translation warning — Admin only</strong><br>
+    ${failures.length} field${failures.length > 1 ? 's' : ''} could not be translated and may still contain Chinese text:
+    <ul style="margin:6px 0 0;padding-left:18px;">
+      ${failures.map(f => `<li>${esc(f.field)}: ${esc(f.reason)}</li>`).join('\n      ')}
+    </ul>
+    Please check the bulletin before publishing and update the sheet manually if needed.
+  </div>
+</div>` : ''}
 
 <!-- HERO -->
 <div class="hero">
