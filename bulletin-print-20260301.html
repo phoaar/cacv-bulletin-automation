@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CACV Bulletin Print — Sunday, 1 March 2026</title>
+<style>
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+
+  /* ── PAGE STRUCTURE ── */
+  .page-1 {
+    page-break-after: always;
+  }
+
+  /* ── HEADER ── */
+  .bulletin-header {
+    text-align: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 4mm;
+    margin-bottom: 4mm;
+  }
+  .bulletin-header h1 {
+    font-size: 15pt;
+    font-weight: bold;
+    letter-spacing: 0.02em;
+  }
+  .bulletin-header .service-info {
+    font-size: 10pt;
+    margin-top: 1mm;
+  }
+
+  /* ── SERMON BLOCK ── */
+  .sermon-block {
+    border: 1px solid #000;
+    padding: 3mm 4mm;
+    margin-bottom: 4mm;
+    text-align: center;
+  }
+  .sermon-block .sermon-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1mm;
+  }
+  .sermon-block .sermon-title {
+    font-size: 13pt;
+    font-weight: bold;
+  }
+  .sermon-block .sermon-detail {
+    font-size: 9.5pt;
+    margin-top: 1mm;
+    font-style: italic;
+  }
+
+  /* ── TWO-COLUMN LAYOUT (page 1 bottom) ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-head {
+    font-size: 8.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border-bottom: 1px solid #000;
+    padding-bottom: 1mm;
+    margin-bottom: 2mm;
+  }
+
+  /* ── ORDER OF SERVICE ── */
+  .order-list {
+    list-style: none;
+    font-size: 10pt;
+  }
+  .order-list li {
+    padding: 0.5mm 0;
+  }
+  .order-list .detail {
+    font-style: italic;
+    font-size: 9pt;
+  }
+
+  /* ── SERVICE TEAM ── */
+  .team-list {
+    list-style: none;
+    font-size: 10pt;
+  }
+  .team-list li {
+    padding: 0.5mm 0;
+  }
+  .team-list .role {
+    font-weight: bold;
+  }
+
+  /* ── PAGE 2: single column sections ── */
+  .announce-section {
+    margin-bottom: 4mm;
+  }
+  .announce-section ol {
+    padding-left: 5mm;
+    font-size: 10pt;
+  }
+  .announce-section ol li {
+    margin-bottom: 1.5mm;
+    line-height: 1.45;
+  }
+
+  .prayer-section {
+    margin-bottom: 4mm;
+  }
+  .prayer-section p {
+    font-size: 10pt;
+    margin-bottom: 1.5mm;
+    line-height: 1.45;
+  }
+  .prayer-section .bullet {
+    font-size: 8pt;
+  }
+
+  /* ── FOOTER ── */
+  .print-footer {
+    border-top: 1px solid #000;
+    padding-top: 3mm;
+    margin-top: 4mm;
+    font-size: 8.5pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 4mm;
+    line-height: 1.5;
+  }
+  .print-footer .footer-head {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    letter-spacing: 0.1em;
+    margin-bottom: 1mm;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── PAGE 1: FRONT ── -->
+<div class="page-1">
+
+  <div class="bulletin-header">
+    <h1>Christian Alliance Church of Victoria</h1>
+    <div class="service-info">
+      Sunday, 1 March 2026 · 10:30 am – 12:00 pm · Rentoul Hall, Burwood
+    </div>
+  </div>
+
+  <div class="sermon-block">
+    <div class="sermon-label">This Week's Message</div>
+    <div class="sermon-title">Test Sermon Title</div>
+    <div class="sermon-detail">
+      Mr Tony Cheung · Genesis 1:1-15
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-head">Order of Service</div>
+      <ul class="order-list">
+<li>1. Announcements</li>
+<li>2. Worship</li>
+<li>3. Offering</li>
+<li>4. Welcoming</li>
+<li>5. Scripture Reading <span class="detail">Genesis 1:1-15</span></li>
+<li>6. Sermon <span class="detail">Test Sermon Title  —  Mr Tony Cheung</span></li>
+<li>7. Response Song</li>
+<li>8. Intercession</li>
+      </ul>
+    </div>
+    <div>
+      <div class="section-head">Service Team</div>
+      <ul class="team-list">
+<li><span class="role">Preacher:</span> Mr Tony Cheung</li>
+<li><span class="role">Chairperson:</span> Eden Law</li>
+<li><span class="role">Worship:</span> Hong Cheng</li>
+<li><span class="role">Music:</span> Paktin So</li>
+<li><span class="role">PowerPoint:</span> Joshua Ho</li>
+<li><span class="role">PA / Sound:</span> Henry Ko</li>
+<li><span class="role">Chief Usher:</span> Alison Pho, Enoch Truong</li>
+<li><span class="role">Ushers:</span> Jeremy Man, Sandra Ho</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── PAGE 2: BACK ── -->
+<div class="page-2">
+
+  <div class="announce-section">
+    <div class="section-head">Announcements</div>
+    <ol>
+  <li><strong>Monthly Prayer Meeting — 24 Feb, 8:00 pm via Zoom</strong> — Come together on the last Tuesday of each month to give thanks and pray. Zoom link: us02web.zoom.us/j/85831129890</li>
+  <li><strong>Easter Camp 2026 — 3–6 April, YMCA Camp Manyung</strong> — &quot;Rise and Live for Jesus&quot;. Adults $350 · Students $300 · Children $150 · Under 2 free. Register: forms.gle/vNzi7fo6ioEJVfyj9. Fees due 1 March.</li>
+  <li><strong>Travel Notice — April to June 2026</strong> — Planning to travel Apr–Jun? Email admin@cacv.org.au to notify the roster team.</li>
+</ol>
+  </div>
+
+  <div class="prayer-section">
+    <div class="section-head">Prayer Items</div>
+    <p><strong>For the World:</strong> <span class="bullet">•</span> Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation.</p>
+<p><strong>For Our International Workers:</strong> <span class="bullet">•</span> Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling. <span class="bullet">•</span> Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1. <span class="bullet">•</span> Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</p>
+<p><strong>For Our Church:</strong> <span class="bullet">•</span> Rentoul Hall: God's guidance and unity through the renovation process. <span class="bullet">•</span> Easter Camp (3–6 April): hearts prepared to rise and live for Jesus. <span class="bullet">•</span> Community Food Pantry: continued supply and committed volunteers. <span class="bullet">•</span> Youth, Livingstones, Worship Team, Children's Ministry, and Small Groups.</p>
+  </div>
+
+  <div class="print-footer">
+    <div>
+      <div class="footer-head">Our Staff</div>
+      Senior Pastor: Rev Colin Wun<br>
+      0434 190 205 · colinwun@cacv.org.au<br><br>
+      Asst Pastor: Ps Kwok Kit Chan<br>
+      0452 349 846 · kwokit@cacv.org.au<br><br>
+      Admin: admin@cacv.org.au
+    </div>
+    <div>
+      <div class="footer-head">Online Giving</div>
+      Account: Christian Alliance Church of Victoria<br>
+      BSB: 033 389<br>
+      Account No: 268 531<br><br>
+      <em>Include your name and giving category in the payment description.</em>
+    </div>
+    <div>
+      <div class="footer-head">Get in Touch</div>
+      17 Livingstone Close, Burwood VIC 3125<br>
+      PO Box 7091 Wattle Park 3128<br>
+      (03) 9888-7114<br>
+      cacv@cacv.org.au<br>
+      www.cacv.org.au
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
