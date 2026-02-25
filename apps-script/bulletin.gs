@@ -55,7 +55,12 @@ function setup() {
 function getServiceDate() {
   var sheet = SpreadsheetApp.getActive().getSheetByName('📋 Service Details');
   // Service Date is in column B, row 6
-  return sheet.getRange('B6').getValue();
+  var value = sheet.getRange('B6').getValue();
+  // Sheets returns date cells as JS Date objects — format to "Sunday 22 February 2026"
+  if (value instanceof Date) {
+    return Utilities.formatDate(value, TIMEZONE, 'EEEE d MMMM yyyy');
+  }
+  return String(value);
 }
 
 function triggerGitHubWorkflow() {
@@ -229,19 +234,22 @@ function onScheduledRun() {
 
   var adminEmail = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL');
   if (adminEmail) {
-    var dateStr = getServiceDate();
+    var dateStr    = getServiceDate();
+    var publishedAt = Utilities.formatDate(new Date(), TIMEZONE, 'EEEE d MMMM yyyy \'at\' h:mm a');
     if (success) {
       MailApp.sendEmail(
         adminEmail,
         '✓ CACV Bulletin is live — ' + dateStr,
-        'The bulletin for ' + dateStr + ' has been published successfully.\n\n' +
+        'The bulletin for ' + dateStr + ' has been published successfully.\n' +
+        'Published: ' + publishedAt + '\n\n' +
         'View it at: https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/'
       );
     } else {
       MailApp.sendEmail(
         adminEmail,
         '⚠️ CACV Bulletin generation failed — ' + dateStr,
-        'The scheduled bulletin generation for ' + dateStr + ' failed.\n\n' +
+        'The scheduled bulletin generation for ' + dateStr + ' failed.\n' +
+        'Attempted: ' + publishedAt + '\n\n' +
         'Please use "Generate Now" from the sheet to retry, or contact your administrator.'
       );
     }
