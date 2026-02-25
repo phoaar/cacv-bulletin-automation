@@ -872,6 +872,7 @@ function buildBulletin(data) {
     .hope-cell:nth-child(3) { border-bottom: 1px solid rgba(255,255,255,0.05); }
     .att-grid { grid-template-columns: 1fr; }
     .sermon-inner { flex-direction: column; align-items: flex-start; }
+    .bible-btns-sm { display: none; }
   }
 
   /* ── STICKY NAV ── */
