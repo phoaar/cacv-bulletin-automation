@@ -292,8 +292,7 @@ function nextService() {
     var lu = function(key) { return 'IFERROR(VLOOKUP("' + key + '",' + sd + ',2,0),"")'; };
 
     var sermonFormula = '=' + lu('Sermon Title') +
-      '&IF(' + lu('Preacher') + '="","","  —  "&' + lu('Preacher') + ')' +
-      '&IF(' + lu('Scripture Reference') + '="","","  ·  "&' + lu('Scripture Reference') + ')';
+      '&IF(' + lu('Preacher') + '="","","  —  "&' + lu('Preacher') + ')';
     var scriptureFormula = '=' + lu('Scripture Reference');
 
     var orderData = orderSheet.getRange(5, 1, orderLastRow - 4, 4).getValues();
