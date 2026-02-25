@@ -226,6 +226,28 @@
     margin-top: 3px;
     font-style: italic;
   }
+  .bible-btns-sm {
+    display: inline-flex;
+    gap: 5px;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .bible-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 100px;
+    border: 1px solid var(--fog);
+    background: var(--sand);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .bible-btn-sm:hover { background: var(--fog); color: var(--ink); border-color: var(--fog); }
+
   .bible-btns {
     display: flex;
     gap: 8px;
@@ -810,8 +832,14 @@
       <li class="order-row"><div class="order-idx">2</div><span class="order-name">Worship</span></li>
       <li class="order-row"><div class="order-idx">3</div><span class="order-name">Offering</span></li>
       <li class="order-row"><div class="order-idx">4</div><span class="order-name">Welcoming</span></li>
-      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span><span class="order-sub">Matthew 3:1–17</span></li>
-      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">The Coming Kingdom — Mr Tony Cheung</span></li>
+      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span><span class="order-sub">Matthew 3:1–17</span><span class="bible-btns-sm">
+        <a class="bible-btn-sm" href="https://www.biblegateway.com/passage/?search=Matthew%203%3A1-17&version=NIV" target="_blank" rel="noopener">BibleGateway</a>
+        <a class="bible-btn-sm" href="https://www.bible.com/bible/111/MAT.3.1-17.NIV" target="_blank" rel="noopener">YouVersion</a>
+      </span></li>
+      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">The Coming Kingdom — Mr Tony Cheung</span><span class="bible-btns-sm">
+        <a class="bible-btn-sm" href="https://www.biblegateway.com/passage/?search=The%20Coming%20Kingdom%20-%20Mr%20Tony%20Cheung&version=NIV" target="_blank" rel="noopener">BibleGateway</a>
+        <a class="bible-btn-sm" href="https://www.bible.com/search/bible?q=The%20Coming%20Kingdom%20-%20Mr%20Tony%20Cheung&version_id=111" target="_blank" rel="noopener">YouVersion</a>
+      </span></li>
       <li class="order-row"><div class="order-idx">7</div><span class="order-name">Response Song</span></li>
       <li class="order-row"><div class="order-idx">8</div><span class="order-name">Intercession</span></li>
     </ul>
@@ -848,7 +876,7 @@
         <div class="announce-n">2</div>
         <div>
           <div class="announce-t">Monthly Prayer Meeting — 24 Feb, 8:00 pm via Zoom</div>
-          <div class="announce-b">Come together on the last Tuesday of each month to give thanks and pray. Zoom link: us02web.zoom.us/j/85831129890</div>
+          <div class="announce-b">Come together on the last Tuesday of each month to give thanks and pray. Zoom link: <a href="https://us02web.zoom.us/j/85831129890" target="_blank" rel="noopener">us02web.zoom.us/j/85831129890</a></div>
         </div>
       </div>
       <div class="announce">
@@ -862,14 +890,14 @@
         <div class="announce-n">4</div>
         <div>
           <div class="announce-t">Easter Camp 2026 — 3–6 April, YMCA Camp Manyung</div>
-          <div class="announce-b">&quot;Rise and Live for Jesus&quot;. Adults $350 · Students $300 · Children $150 · Under 2 free. Register: forms.gle/vNzi7fo6ioEJVfyj9. Fees due 1 March.</div>
+          <div class="announce-b">&quot;Rise and Live for Jesus&quot;. Adults $350 · Students $300 · Children $150 · Under 2 free. Register: <a href="https://forms.gle/vNzi7fo6ioEJVfyj9." target="_blank" rel="noopener">forms.gle/vNzi7fo6ioEJVfyj9.</a> Fees due 1 March.</div>
         </div>
       </div>
       <div class="announce">
         <div class="announce-n">5</div>
         <div>
           <div class="announce-t">Travel Notice — April to June 2026</div>
-          <div class="announce-b">Planning to travel Apr–Jun? Email admin@cacv.org.au to notify the roster team.</div>
+          <div class="announce-b">Planning to travel Apr–Jun? Email <a href="mailto:admin@cacv.org.au">admin@cacv.org.au</a> to notify the roster team.</div>
         </div>
       </div>
     </div>
