@@ -70,7 +70,12 @@ function buildOrder(order) {
   return order.map((item, i) => {
     const focusClass = item.type === 'focus' ? ' focus' : '';
     const sub = item.detail ? `<span class="order-sub">${esc(item.detail)}</span>` : '';
-    return `      <li class="order-row${focusClass}"><div class="order-idx">${esc(String(i + 1))}</div><span class="order-name">${esc(item.item)}</span>${sub}</li>`;
+    // Add bible buttons for scripture rows that have a reference in the detail field
+    const bibleButtons = (item.type === 'focus' && item.detail) ? `<span class="bible-btns-sm">
+        <a class="bible-btn-sm" href="${bibleGatewayUrl(item.detail)}" target="_blank" rel="noopener">BibleGateway</a>
+        <a class="bible-btn-sm" href="${youVersionUrl(item.detail)}" target="_blank" rel="noopener">YouVersion</a>
+      </span>` : '';
+    return `      <li class="order-row${focusClass}"><div class="order-idx">${esc(String(i + 1))}</div><span class="order-name">${esc(item.item)}</span>${sub}${bibleButtons}</li>`;
   }).join('\n');
 }
 
@@ -97,23 +102,42 @@ function buildTeam(s) {
 }
 
 /**
+ * Auto-link URLs (with or without protocol) and email addresses in raw text.
+ * Escapes all non-link text. Works on raw (unescaped) input.
+ */
+function autoLink(rawText) {
+  const pattern = /(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+  let result = '';
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(rawText)) !== null) {
+    result += esc(rawText.slice(lastIndex, match.index));
+    const url = match[1];
+    if (url.includes('@') && !url.startsWith('http')) {
+      result += `<a href="mailto:${esc(url)}">${esc(url)}</a>`;
+    } else if (url.startsWith('http')) {
+      result += `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`;
+    } else {
+      result += `<a href="https://${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`;
+    }
+    lastIndex = match.index + url.length;
+  }
+  result += esc(rawText.slice(lastIndex));
+  return result;
+}
+
+/**
  * Build the Announcements list.
- * Body text may contain plain URLs which we auto-link for convenience.
  */
 function buildAnnouncements(announcements) {
   if (!announcements || announcements.length === 0) return '<p style="color:var(--muted);font-size:13px">No announcements this week.</p>';
 
   return `<div class="announce-stack">\n` + announcements.map((a, i) => {
-    // Auto-link bare URLs in body text
-    const safeBody = esc(a.body).replace(
-      /(https?:\/\/[^\s&lt;&gt;"]+)/g,
-      '<a href="$1">$1</a>'
-    );
     return `      <div class="announce">
         <div class="announce-n">${i + 1}</div>
         <div>
           <div class="announce-t">${esc(a.title)}</div>
-          <div class="announce-b">${safeBody}</div>
+          <div class="announce-b">${autoLink(a.body)}</div>
         </div>
       </div>`;
   }).join('\n') + '\n    </div>';
@@ -399,6 +423,28 @@ function buildBulletin(data) {
     margin-top: 3px;
     font-style: italic;
   }
+  .bible-btns-sm {
+    display: inline-flex;
+    gap: 5px;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  .bible-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 100px;
+    border: 1px solid var(--fog);
+    background: var(--sand);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .bible-btn-sm:hover { background: var(--fog); color: var(--ink); border-color: var(--fog); }
+
   .bible-btns {
     display: flex;
     gap: 8px;
