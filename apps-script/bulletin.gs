@@ -14,12 +14,13 @@ var TIMEZONE       = 'Australia/Melbourne';
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('📋 Bulletin')
-    .addItem('⚡ Generate Now',          'generateNow')
+    .addItem('⚡ Generate Now',            'generateNow')
     .addSeparator()
-    .addItem('🕐 Schedule for Sunday',   'scheduleForSunday')
-    .addItem('❌ Cancel Scheduled Run',  'cancelSchedule')
+    .addItem('🕐 Schedule for Sunday',     'scheduleForSunday')
+    .addItem('📅 Schedule for Custom Date', 'scheduleCustom')
+    .addItem('❌ Cancel Scheduled Run',    'cancelSchedule')
     .addSeparator()
-    .addItem('⚙️  Setup (first time)',   'setup')
+    .addItem('⚙️  Setup (first time)',     'setup')
     .addToUi();
 }
 
@@ -144,6 +145,78 @@ function scheduleForSunday() {
   ui.alert(
     '✓ Scheduled',
     'Bulletin will go live automatically on ' + runDateFormatted + '.\n\n' +
+    'To cancel, use Bulletin → ❌ Cancel Scheduled Run.',
+    ui.ButtonSet.OK
+  );
+}
+
+// ── SCHEDULE FOR CUSTOM DATE ─────────────────────────────────────────────────
+
+function scheduleCustom() {
+  var ui      = SpreadsheetApp.getUi();
+  var dateStr = getServiceDate();
+
+  var dateResult = ui.prompt(
+    '📅 Schedule — Date',
+    'Enter the date to publish the bulletin (bulletin is for ' + dateStr + ').\n\nFormat: DD/MM/YYYY',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (dateResult.getSelectedButton() !== ui.Button.OK) return;
+
+  var timeResult = ui.prompt(
+    '📅 Schedule — Time',
+    'Enter the time to publish (Melbourne time).\n\nFormat: HH:MM (24-hour, e.g. 21:00 for 9:00 pm)',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (timeResult.getSelectedButton() !== ui.Button.OK) return;
+
+  // Parse date (DD/MM/YYYY) and time (HH:MM)
+  var dateParts = dateResult.getResponseText().trim().split('/');
+  var timeParts = timeResult.getResponseText().trim().split(':');
+
+  if (dateParts.length !== 3 || timeParts.length !== 2) {
+    ui.alert('Invalid format', 'Please use DD/MM/YYYY for date and HH:MM for time.', ui.ButtonSet.OK);
+    return;
+  }
+
+  var day   = parseInt(dateParts[0], 10);
+  var month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
+  var year  = parseInt(dateParts[2], 10);
+  var hours = parseInt(timeParts[0], 10);
+  var mins  = parseInt(timeParts[1], 10);
+
+  if (isNaN(day) || isNaN(month) || isNaN(year) || isNaN(hours) || isNaN(mins)) {
+    ui.alert('Invalid format', 'Please use DD/MM/YYYY for date and HH:MM for time.', ui.ButtonSet.OK);
+    return;
+  }
+
+  var runTime = new Date(year, month, day, hours, mins, 0, 0);
+  if (runTime <= new Date()) {
+    ui.alert('Invalid date', 'The scheduled time is in the past. Please enter a future date and time.', ui.ButtonSet.OK);
+    return;
+  }
+
+  var runDateFormatted = Utilities.formatDate(runTime, TIMEZONE, 'EEEE d MMM \'at\' h:mm a');
+
+  var result = ui.alert(
+    'Confirm Schedule',
+    'Schedule bulletin for ' + dateStr + '?\n\n' +
+    'It will go live on ' + runDateFormatted + '.',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (result !== ui.Button.OK) return;
+
+  // Remove any existing scheduled trigger first
+  deleteTriggers_();
+
+  ScriptApp.newTrigger('onScheduledRun')
+    .timeBased()
+    .at(runTime)
+    .create();
+
+  ui.alert(
+    '✓ Scheduled',
+    'Bulletin will go live on ' + runDateFormatted + '.\n\n' +
     'To cancel, use Bulletin → ❌ Cancel Scheduled Run.',
     ui.ButtonSet.OK
   );
