@@ -39,7 +39,7 @@ jobs:
         run: node src/index.js
 
       - name: Prepare index.html for GitHub Pages
-        run: cp output/bulletin-*.html output/index.html
+        run: cp output/bulletin-[0-9]*.html output/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
