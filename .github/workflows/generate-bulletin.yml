@@ -32,6 +32,7 @@ jobs:
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
           CREDENTIALS_PATH: ./credentials/service-account.json
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node src/index.js
 
       - name: Prepare index.html for GitHub Pages

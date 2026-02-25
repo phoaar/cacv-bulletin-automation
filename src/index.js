@@ -5,6 +5,7 @@ require('dotenv').config();
 const fs   = require('fs');
 const path = require('path');
 const { fetchBulletinData } = require('./sheets');
+const { translateData }     = require('./translate');
 const { buildBulletin }     = require('./template');
 
 async function main() {
@@ -28,7 +29,10 @@ async function main() {
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
   console.log('Fetching bulletin data from Google Sheets…');
-  const data = await fetchBulletinData(sheetId);
+  const rawData = await fetchBulletinData(sheetId);
+
+  // ── Translate Chinese content ───────────────────────────────────────────────
+  const data = await translateData(rawData);
 
   // ── Build HTML ────────────────────────────────────────────────────────────
   console.log('Building HTML…');
