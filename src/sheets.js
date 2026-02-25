@@ -43,26 +43,24 @@ async function fetchBulletinData(sheetId) {
   const detailRows = await getRange(sheets, sheetId, '📋 Service Details!A:B');
   const details = toKV(detailRows);
 
-  // PP & PA are stored as two separate rows — combine them
-  const pppa = [details['PowerPoint'], details['PA / Sound']].filter(Boolean).join(' · ');
-
   const service = {
-    date:            details['Service Date']       || '',
-    time:            details['Service Time']       || '',
-    venue:           details['Venue']              || '',
-    sermonTitle:     details['Sermon Title']       || '',
+    date:            details['Service Date']        || '',
+    time:            details['Service Time']        || '',
+    venue:           details['Venue']               || '',
+    sermonTitle:     details['Sermon Title']        || '',
     sermonScripture: details['Scripture Reference'] || '',
-    preacher:        details['Preacher']           || '',
-    chairperson:     details['Chairperson']        || '',
-    worship:         details['Worship Leader']     || '',
-    music:           details['Music / Band']       || '',
-    pppa:            pppa,
-    chiefUsher:      details['Chief Usher']        || '',
-    usher:           details['Ushers']             || '',
-    flowers:         details['Flowers']            || '',
-    attendanceEng:   details['Attendance (English)']     || '',
-    attendanceChi:   details['Attendance (Chinese)']     || '',
-    attendanceKids:  details["Attendance (Children's)"]  || '',
+    preacher:        details['Preacher']            || '',
+    chairperson:     details['Chairperson']         || '',
+    worship:         details['Worship Leader']      || '',
+    music:           details['Music / Band']        || '',
+    powerpoint:      details['PowerPoint']          || '',
+    paSound:         details['PA / Sound']          || '',
+    chiefUsher:      details['Chief Usher']         || '',
+    usher:           details['Ushers']              || '',
+    flowers:         details['Flowers']             || '',
+    attendanceEng:   details['Attendance (English)']      || '',
+    attendanceChi:   details['Attendance (Chinese)']      || '',
+    attendanceKids:  details["Attendance (Children's)"]   || '',
   };
 
   // ── 2. ORDER OF SERVICE ─────────────────────────────────────────────────────

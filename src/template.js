@@ -12,6 +12,16 @@ function esc(str) {
 }
 
 /**
+ * Build a BibleGateway NIV URL from a scripture reference string.
+ * e.g. "Matthew 3:1–17" → https://www.biblegateway.com/passage/?search=Matthew+3%3A1-17&version=NIV
+ */
+function bibleGatewayUrl(reference) {
+  if (!reference) return null;
+  const cleaned = reference.replace(/[–—]/g, '-'); // normalise dashes
+  return 'https://www.biblegateway.com/passage/?search=' + encodeURIComponent(cleaned) + '&version=NIV';
+}
+
+/**
  * Build the Order of Service list items.
  */
 function buildOrder(order) {
@@ -29,14 +39,15 @@ function buildOrder(order) {
  */
 function buildTeam(s) {
   const roles = [
-    { role: 'Preacher',        name: s.preacher    },
-    { role: 'Chairperson',     name: s.chairperson },
-    { role: 'Worship',         name: s.worship     },
-    { role: 'Music',           name: s.music       },
-    { role: 'PowerPoint / PA', name: s.pppa        },
-    { role: 'Chief Usher',     name: s.chiefUsher  },
-    { role: 'Usher',           name: s.usher       },
-    { role: 'Flowers',         name: s.flowers     },
+    { role: 'Preacher',    name: s.preacher    },
+    { role: 'Chairperson', name: s.chairperson },
+    { role: 'Worship',     name: s.worship     },
+    { role: 'Music',       name: s.music       },
+    { role: 'PowerPoint',  name: s.powerpoint  },
+    { role: 'PA / Sound',  name: s.paSound     },
+    { role: 'Chief Usher', name: s.chiefUsher  },
+    { role: 'Usher',       name: s.usher       },
+    { role: 'Flowers',     name: s.flowers     },
   ];
 
   return roles
@@ -844,7 +855,7 @@ function buildBulletin(data) {
     <div>
       <div class="sermon-eyebrow">This Week's Message</div>
       <div class="sermon-title">${esc(service.sermonTitle)}</div>
-      <div class="sermon-ref">${esc(service.sermonScripture)}</div>
+      <div class="sermon-ref">${service.sermonScripture ? `<a href="${bibleGatewayUrl(service.sermonScripture)}" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.55);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.25);">${esc(service.sermonScripture)}</a>` : ''}</div>
     </div>
     <div class="preacher-tag">${esc(service.preacher)}</div>
   </div>
