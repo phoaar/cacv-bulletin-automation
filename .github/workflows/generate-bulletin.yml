@@ -28,13 +28,14 @@ jobs:
           mkdir -p credentials
           echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials/service-account.json
 
-      - name: Generate bulletin HTML
+      - name: Generate bulletin HTML and PDF
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
           CREDENTIALS_PATH: ./credentials/service-account.json
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          CHROME_PATH: /usr/bin/google-chrome-stable
         run: node src/index.js
 
       - name: Prepare index.html for GitHub Pages

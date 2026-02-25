@@ -4,10 +4,12 @@ require('dotenv').config();
 
 const fs   = require('fs');
 const path = require('path');
-const { fetchBulletinData } = require('./sheets');
-const { translateData }     = require('./translate');
-const { buildBulletin }     = require('./template');
-const { validateBulletin }  = require('./validate');
+const { fetchBulletinData }  = require('./sheets');
+const { translateData }      = require('./translate');
+const { buildBulletin }      = require('./template');
+const { buildPrintBulletin } = require('./print-template');
+const { generatePdf }        = require('./pdf');
+const { validateBulletin }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 
 // GitHub Pages URL for the live bulletin
@@ -71,6 +73,21 @@ async function main() {
   fs.writeFileSync(outputPath, html, 'utf8');
   console.log(`\nDone! Bulletin written to:\n  ${outputPath}\n`);
 
+  // ── Generate print PDF ────────────────────────────────────────────────────
+  let pdfPath = null;
+  try {
+    console.log('Building print HTML…');
+    const printHtml = buildPrintBulletin(data);
+    const printHtmlPath = path.join(outputDir, `bulletin-print-${dateSlug}.html`);
+    fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
+
+    const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
+    const pdfGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath);
+    if (pdfGenerated) pdfPath = printPdfPath;
+  } catch (err) {
+    console.warn(`PDF generation failed: ${err.message}`);
+  }
+
   // ── Send notifications ─────────────────────────────────────────────────────
   const to = data.notificationEmails || [];
   const serviceDate = data.service.date || 'Unknown date';
@@ -81,7 +98,7 @@ async function main() {
       await notifyFailures({ to, serviceDate, liveUrl: LIVE_URL, issues: allIssues });
     } else {
       console.log('Sending success notification…');
-      await notifySuccess({ to, serviceDate, liveUrl: LIVE_URL });
+      await notifySuccess({ to, serviceDate, liveUrl: LIVE_URL, pdfPath });
     }
   } else {
     console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');

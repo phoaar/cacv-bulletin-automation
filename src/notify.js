@@ -26,8 +26,14 @@ function canSendEmail() {
 
 /**
  * Send a notification email to all addresses in the list.
+ * @param {Object} opts
+ * @param {string[]} opts.to
+ * @param {string}   opts.subject
+ * @param {string}   opts.text
+ * @param {string}   opts.html
+ * @param {Array}    [opts.attachments]  nodemailer attachments array
  */
-async function sendNotification({ to, subject, text, html }) {
+async function sendNotification({ to, subject, text, html, attachments }) {
   if (!canSendEmail()) {
     console.warn('Email notification skipped — GMAIL_USER or GMAIL_APP_PASSWORD not set.');
     return;
@@ -37,14 +43,19 @@ async function sendNotification({ to, subject, text, html }) {
     return;
   }
 
+  const mailOpts = {
+    from: `"CACV Bulletin" <${process.env.GMAIL_USER}>`,
+    to:   to.join(', '),
+    subject,
+    text,
+    html,
+  };
+  if (attachments && attachments.length > 0) {
+    mailOpts.attachments = attachments;
+  }
+
   try {
-    await getTransporter().sendMail({
-      from: `"CACV Bulletin" <${process.env.GMAIL_USER}>`,
-      to:   to.join(', '),
-      subject,
-      text,
-      html,
-    });
+    await getTransporter().sendMail(mailOpts);
     console.log(`Notification sent to: ${to.join(', ')}`);
   } catch (err) {
     console.warn(`Failed to send notification email: ${err.message}`);
@@ -85,22 +96,45 @@ async function notifyFailures({ to, serviceDate, liveUrl, issues }) {
 }
 
 /**
- * Send a success notification.
+ * Send a success notification, optionally attaching the print PDF.
+ * @param {Object} opts
+ * @param {string[]} opts.to
+ * @param {string}   opts.serviceDate
+ * @param {string}   opts.liveUrl
+ * @param {string}   [opts.pdfPath]  Absolute path to PDF file to attach
  */
-async function notifySuccess({ to, serviceDate, liveUrl }) {
+async function notifySuccess({ to, serviceDate, liveUrl, pdfPath }) {
+  const attachments = [];
+  if (pdfPath) {
+    const fs = require('fs');
+    if (fs.existsSync(pdfPath)) {
+      attachments.push({
+        filename: `cacv-bulletin-${serviceDate.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+        path: pdfPath,
+        contentType: 'application/pdf',
+      });
+    }
+  }
+
+  const pdfNote = attachments.length > 0
+    ? '\n\nThe print-ready PDF is attached — please print before Sunday.'
+    : '';
+
   await sendNotification({
     to,
     subject: `✓ CACV Bulletin is live — ${serviceDate}`,
-    text: `The bulletin for ${serviceDate} has been published successfully.\n\nView it at: ${liveUrl}`,
+    text: `The bulletin for ${serviceDate} has been published successfully.\n\nView it at: ${liveUrl}${pdfNote}`,
     html: `
       <div style="font-family:sans-serif;max-width:600px;padding:24px;">
         <h2 style="color:#3D4A2A;margin-bottom:8px;">✓ Bulletin Live — ${serviceDate}</h2>
         <p>The bulletin has been published successfully.</p>
         <p><a href="${liveUrl}" style="color:#5C6B48;">View the bulletin →</a></p>
+        ${attachments.length > 0 ? '<p style="margin-top:12px;">The print-ready PDF is attached — please print before Sunday.</p>' : ''}
         <hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
         <p style="color:#999;font-size:12px;">CACV Bulletin Automation</p>
       </div>
     `,
+    attachments,
   });
 }
 

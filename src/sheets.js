@@ -113,19 +113,22 @@ async function fetchBulletinData(sheetId) {
 
   // ── 5. ROSTER ───────────────────────────────────────────────────────────────
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
-  // Columns: Date | Preacher | Chairperson | Worship / Music | PP & PA | Chief Usher / Ushers
-  const rosterRows = await getRange(sheets, sheetId, '👥 Roster!A:F');
+  // Columns: Date | Preacher | Chairperson | Worship Leader | Music / Band | PowerPoint | PA / Sound | Chief Usher | Ushers
+  const rosterRows = await getRange(sheets, sheetId, '👥 Roster!A:I');
   const roster = rosterRows
     .slice(4)
     .filter(r => r[0] && r[0].trim() && r[1] && r[1].trim())
     .slice(0, 4)
     .map(r => ({
-      date:         (r[0] || '').trim(),
-      preacher:     (r[1] || '').trim(),
-      chair:        (r[2] || '').trim(),
-      worshipMusic: (r[3] || '').trim(),
-      pppa:         (r[4] || '').trim(),
-      ushers:       (r[5] || '').trim(),
+      date:       (r[0] || '').trim(),
+      preacher:   (r[1] || '').trim(),
+      chair:      (r[2] || '').trim(),
+      worship:    (r[3] || '').trim(),
+      music:      (r[4] || '').trim(),
+      powerpoint: (r[5] || '').trim(),
+      paSound:    (r[6] || '').trim(),
+      chiefUsher: (r[7] || '').trim(),
+      ushers:     (r[8] || '').trim(),
     }));
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────

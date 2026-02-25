@@ -165,9 +165,9 @@ ${items}
  * Build the Roster table rows.
  */
 function buildRoster(roster) {
-  if (!roster || roster.length === 0) return '<tr><td colspan="6" style="color:var(--muted);text-align:center">No roster data available</td></tr>';
+  if (!roster || roster.length === 0) return '<tr><td colspan="9" style="color:var(--muted);text-align:center">No roster data available</td></tr>';
   return roster.map(r =>
-    `          <tr><td>${esc(r.date)}</td><td>${esc(r.preacher)}</td><td>${esc(r.chair)}</td><td>${esc(r.worshipMusic)}</td><td>${esc(r.pppa)}</td><td>${esc(r.ushers)}</td></tr>`
+    `          <tr><td>${esc(r.date)}</td><td>${esc(r.preacher)}</td><td>${esc(r.chair)}</td><td>${esc(r.worship)}</td><td>${esc(r.music)}</td><td>${esc(r.powerpoint)}</td><td>${esc(r.paSound)}</td><td>${esc(r.chiefUsher)}</td><td>${esc(r.ushers)}</td></tr>`
   ).join('\n');
 }
 
@@ -1071,7 +1071,7 @@ ${buildTeam(service)}
     <div class="card-label">Upcoming Roster</div>
     <div class="tbl-scroll">
       <table class="tbl">
-        <thead><tr><th>Date</th><th>Preacher</th><th>Chair</th><th>Worship / Music</th><th>PP &amp; PA</th><th>Ushers</th></tr></thead>
+        <thead><tr><th>Date</th><th>Preacher</th><th>Chair</th><th>Worship</th><th>Music</th><th>PP</th><th>PA</th><th>Chief Usher</th><th>Ushers</th></tr></thead>
         <tbody>
 ${buildRoster(roster)}
         </tbody>
