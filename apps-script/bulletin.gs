@@ -56,6 +56,78 @@ function setup() {
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
+/**
+ * Calculate Easter Sunday for a given year (Anonymous Gregorian algorithm).
+ */
+function getEasterSunday_(year) {
+  var a = year % 19;
+  var b = Math.floor(year / 100);
+  var c = year % 100;
+  var d = Math.floor(b / 4);
+  var e = b % 4;
+  var f = Math.floor((b + 8) / 25);
+  var g = Math.floor((b - f + 1) / 3);
+  var h = (19 * a + b - d - g + 15) % 30;
+  var i = Math.floor(c / 4);
+  var k = c % 4;
+  var l = (32 + 2 * e + 2 * i - h - k) % 7;
+  var m = Math.floor((a + 11 * h + 22 * l) / 451);
+  var month = Math.floor((h + l - 7 * m + 114) / 31);
+  var day   = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Given the current service date, return the next service date and label.
+ *
+ * Rules:
+ *  - If current service is NOT a Sunday (e.g. Good Friday, Christmas Day),
+ *    always advance to the next Sunday.
+ *  - If current service IS a Sunday, check whether Good Friday or Christmas Day
+ *    (non-Sunday) falls before the next Sunday. If so, return that date instead.
+ *  - Otherwise return next Sunday (+7 days).
+ *
+ * Returns: { date: Date, label: string|null }
+ *   label is 'Good Friday', 'Christmas Day', or null (regular Sunday).
+ */
+function getNextServiceDate_(currentDate) {
+  var dayOfWeek = currentDate.getDay(); // 0=Sun … 6=Sat
+
+  // Current service is a special day (non-Sunday) → jump to next Sunday
+  if (dayOfWeek !== 0) {
+    var daysToSunday = 7 - dayOfWeek;
+    return { date: new Date(currentDate.getTime() + daysToSunday * 24 * 60 * 60 * 1000), label: null };
+  }
+
+  // Current service is a Sunday — look for special services in the next 6 days
+  var nextSunday = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  var year       = currentDate.getFullYear();
+  var candidates = [];
+
+  // Good Friday = Easter Sunday − 2 days (check this year and next year)
+  for (var y = year; y <= year + 1; y++) {
+    var easter     = getEasterSunday_(y);
+    var goodFriday = new Date(easter.getTime() - 2 * 24 * 60 * 60 * 1000);
+    if (goodFriday > currentDate && goodFriday < nextSunday) {
+      candidates.push({ date: goodFriday, label: 'Good Friday' });
+    }
+  }
+
+  // Christmas Day — only a special service if it does NOT fall on a Sunday
+  var christmas = new Date(year, 11, 25); // Dec 25 this year
+  if (christmas.getDay() !== 0 && christmas > currentDate && christmas < nextSunday) {
+    candidates.push({ date: christmas, label: 'Christmas Day' });
+  }
+
+  // Return the earliest special date found, or next Sunday if none
+  if (candidates.length > 0) {
+    candidates.sort(function(a, b) { return a.date - b.date; });
+    return candidates[0];
+  }
+
+  return { date: nextSunday, label: null };
+}
+
 function getServiceDate() {
   var sheet = SpreadsheetApp.getActive().getSheetByName('📋 Service Details');
   // Service Date is in column B, row 6
@@ -137,20 +209,16 @@ function nextService() {
   var currentDateStr = getServiceDate();
   var currentDate    = getServiceDateRaw();
 
-  // Always advance to the next Sunday after the current service date.
-  // Works automatically for all cases:
-  //   Sunday (normal week) → +7 days
-  //   Friday (Good Friday) → +2 days (Easter Sunday)
-  //   Wednesday/Thursday (Christmas) → next Sunday
-  var dayOfWeek        = currentDate.getDay(); // 0=Sun, 1=Mon … 6=Sat
-  var daysToNextSunday = dayOfWeek === 0 ? 7 : (7 - dayOfWeek);
-  var newDate          = new Date(currentDate.getTime() + daysToNextSunday * 24 * 60 * 60 * 1000);
-  var newDateStr       = Utilities.formatDate(newDate, TIMEZONE, 'EEEE d MMMM yyyy');
+  // Detect next service date — automatically handles Good Friday and Christmas Day
+  var next       = getNextServiceDate_(currentDate);
+  var newDate    = next.date;
+  var newDateStr = Utilities.formatDate(newDate, TIMEZONE, 'EEEE d MMMM yyyy');
+  var serviceLabel = next.label ? ' (' + next.label + ')' : '';
 
   var result = ui.alert(
     '🗓 Next Service',
     'This will prepare the sheet for the next service:\n\n' +
-    '• Set Service Date to ' + newDateStr + '\n' +
+    '• Set Service Date to ' + newDateStr + serviceLabel + '\n' +
     '• Auto-fill service team from Roster\n' +
     '• Clear sermon and Order of Service\n' +
     '• Delete announcements not marked "Keep next week?"\n' +
@@ -272,7 +340,7 @@ function nextService() {
   var teamFilled = Object.keys(upcomingTeam).filter(function(k) { return upcomingTeam[k]; }).length;
   ui.alert(
     '✓ Next Service Ready',
-    'Next service: ' + newDateStr + '\n\n' +
+    'Next service: ' + newDateStr + serviceLabel + '\n\n' +
     teamFilled + ' service team field(s) auto-filled from roster.\n' +
     keptAnnouncements + ' announcement(s) carried forward, ' + deletedAnnouncements + ' removed.\n' +
     keptPrayer + ' prayer item(s) carried forward, ' + deletedPrayer + ' removed.\n\n' +
