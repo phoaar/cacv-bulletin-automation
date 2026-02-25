@@ -1,0 +1,45 @@
+name: Generate Bulletin
+
+on:
+  workflow_dispatch:  # triggered by Apps Script buttons
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write service account credentials
+        run: |
+          mkdir -p credentials
+          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials/service-account.json
+
+      - name: Generate bulletin HTML
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          CREDENTIALS_PATH: ./credentials/service-account.json
+        run: node src/index.js
+
+      - name: Prepare index.html for GitHub Pages
+        run: cp output/bulletin-*.html output/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          keep_files: false

@@ -3,10 +3,6 @@
 const { google } = require('googleapis');
 const path = require('path');
 
-/**
- * Authenticate using the service account JSON pointed to by CREDENTIALS_PATH.
- * Returns an authenticated Google Sheets client.
- */
 function getClient() {
   const credPath = path.resolve(process.env.CREDENTIALS_PATH);
   const auth = new google.auth.GoogleAuth({
@@ -16,10 +12,6 @@ function getClient() {
   return google.sheets({ version: 'v4', auth });
 }
 
-/**
- * Read a named range from the sheet and return the raw values array.
- * Rows with no data are filtered out.
- */
 async function getRange(sheets, sheetId, range) {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
@@ -30,100 +22,105 @@ async function getRange(sheets, sheetId, range) {
 
 /**
  * Build a key→value map from a two-column range (col A = key, col B = value).
+ * Skips section-header rows (those with no value in col B).
  */
 function toKV(rows) {
   const map = {};
   for (const row of rows) {
-    if (row[0]) map[row[0].trim()] = (row[1] || '').trim();
+    if (row[0] && row[1] !== undefined) map[row[0].trim()] = (row[1] || '').trim();
   }
   return map;
 }
 
-/**
- * Fetch all bulletin data from the Google Sheet.
- *
- * Returns a structured object ready for template.js to consume.
- */
 async function fetchBulletinData(sheetId) {
   const sheets = getClient();
 
   // ── 1. SERVICE DETAILS ──────────────────────────────────────────────────────
+  // Structure: rows 0-2 are title/instructions, row 3 is column header,
+  // row 4 is "SERVICE INFO" section header, data rows from row 5 onwards.
+  // We pass everything to toKV — it naturally ignores section-header rows
+  // (those where col B is blank).
   const detailRows = await getRange(sheets, sheetId, '📋 Service Details!A:B');
   const details = toKV(detailRows);
 
+  // PP & PA are stored as two separate rows — combine them
+  const pppa = [details['PowerPoint'], details['PA / Sound']].filter(Boolean).join(' · ');
+
   const service = {
-    date:             details['Date']             || '',
-    time:             details['Time']             || '',
-    venue:            details['Venue']            || '',
-    sermonTitle:      details['Sermon Title']     || '',
-    sermonScripture:  details['Scripture']        || '',
-    preacher:         details['Preacher']         || '',
-    chairperson:      details['Chairperson']      || '',
-    worship:          details['Worship']          || '',
-    music:            details['Music']            || '',
-    pppa:             details['PP & PA']          || '',
-    chiefUsher:       details['Chief Usher']      || '',
-    usher:            details['Usher']            || '',
-    flowers:          details['Flowers']          || '',
-    attendanceEng:    details['Attendance (English)']    || '',
-    attendanceChi:    details['Attendance (Chinese)']    || '',
-    attendanceKids:   details['Attendance (Children\'s)'] || '',
+    date:            details['Service Date']       || '',
+    time:            details['Service Time']       || '',
+    venue:           details['Venue']              || '',
+    sermonTitle:     details['Sermon Title']       || '',
+    sermonScripture: details['Scripture Reference'] || '',
+    preacher:        details['Preacher']           || '',
+    chairperson:     details['Chairperson']        || '',
+    worship:         details['Worship Leader']     || '',
+    music:           details['Music / Band']       || '',
+    pppa:            pppa,
+    chiefUsher:      details['Chief Usher']        || '',
+    usher:           details['Ushers']             || '',
+    flowers:         details['Flowers']            || '',
+    attendanceEng:   details['Attendance (English)']     || '',
+    attendanceChi:   details['Attendance (Chinese)']     || '',
+    attendanceKids:  details["Attendance (Children's)"]  || '',
   };
 
   // ── 2. ORDER OF SERVICE ─────────────────────────────────────────────────────
+  // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
+  // Columns: # | Service Item | Detail (optional) | Type
+  // Type values from sheet: General, Worship, Scripture, Sermon, Prayer
+  // We map Scripture and Sermon → 'focus' to highlight those rows.
+  const focusTypes = new Set(['scripture', 'sermon']);
   const orderRows = await getRange(sheets, sheetId, '🗓 Order of Service!A:D');
-  // Expected columns: Step | Item | Detail | Type
-  // Skip header row (row 0)
   const order = orderRows
-    .slice(1)
-    .filter(r => r[0] || r[1])
+    .slice(4)
+    .filter(r => r[1] && r[1].trim())
     .map(r => ({
       step:   (r[0] || '').trim(),
       item:   (r[1] || '').trim(),
       detail: (r[2] || '').trim(),
-      type:   (r[3] || '').trim().toLowerCase(), // 'focus' highlights the row
+      type:   focusTypes.has((r[3] || '').trim().toLowerCase()) ? 'focus' : '',
     }));
 
   // ── 3. ANNOUNCEMENTS ────────────────────────────────────────────────────────
-  const announceRows = await getRange(sheets, sheetId, '📢 Announcements!A:B');
-  // Expected columns: Title | Body
-  // Skip header row
+  // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
+  // Columns: # | Title | Body Text | Keep next week? | Language
+  const announceRows = await getRange(sheets, sheetId, '📢 Announcements!A:E');
   const announcements = announceRows
-    .slice(1)
-    .filter(r => r[0])
-    .slice(0, 8)
+    .slice(4)
+    .filter(r => r[1] && r[1].trim())
+    .slice(0, 12)
     .map(r => ({
-      title: (r[0] || '').trim(),
-      body:  (r[1] || '').trim(),
+      title: (r[1] || '').trim(),
+      body:  (r[2] || '').trim(),
     }));
 
   // ── 4. PRAYER ITEMS ─────────────────────────────────────────────────────────
-  const prayerRows = await getRange(sheets, sheetId, '🙏 Prayer Items!A:B');
-  // Expected columns: Group | Point
-  // Skip header row
+  // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
+  // Columns: Group / Category | Prayer Point | Keep next week?
+  // Group name is repeated on every row (not left blank).
+  const prayerRows = await getRange(sheets, sheetId, '🙏 Prayer Items!A:C');
   const prayerMap = {};
   const prayerOrder = [];
-  for (const row of prayerRows.slice(1)) {
-    if (!row[1]) continue;
-    const group = (row[0] || '').trim();
+  for (const row of prayerRows.slice(4)) {
     const point = (row[1] || '').trim();
-    if (!group && prayerOrder.length === 0) continue;
-    const effectiveGroup = group || prayerOrder[prayerOrder.length - 1];
-    if (!prayerMap[effectiveGroup]) {
-      prayerMap[effectiveGroup] = [];
-      prayerOrder.push(effectiveGroup);
+    if (!point) continue;
+    const group = (row[0] || '').trim() || prayerOrder[prayerOrder.length - 1] || 'General';
+    if (!prayerMap[group]) {
+      prayerMap[group] = [];
+      prayerOrder.push(group);
     }
-    prayerMap[effectiveGroup].push(point);
+    prayerMap[group].push(point);
   }
   const prayer = prayerOrder.map(g => ({ group: g, points: prayerMap[g] }));
 
   // ── 5. ROSTER ───────────────────────────────────────────────────────────────
+  // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
+  // Columns: Date | Preacher | Chairperson | Worship / Music | PP & PA | Chief Usher / Ushers
   const rosterRows = await getRange(sheets, sheetId, '👥 Roster!A:F');
-  // Expected columns: Date | Preacher | Chair | Worship/Music | PP&PA | Ushers
-  // Skip header row; take up to 4 data rows
   const roster = rosterRows
-    .slice(1)
-    .filter(r => r[0])
+    .slice(4)
+    .filter(r => r[0] && r[0].trim() && r[1] && r[1].trim())
     .slice(0, 4)
     .map(r => ({
       date:         (r[0] || '').trim(),
@@ -135,12 +132,12 @@ async function fetchBulletinData(sheetId) {
     }));
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────
+  // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
+  // Columns: Month | Day | Event | Responsible | Show on bulletin?
   const eventRows = await getRange(sheets, sheetId, '📅 Events!A:E');
-  // Expected columns: Month | Day | Event | Responsible | Show
-  // Skip header row; only include rows where Show = Yes (col E)
   const events = eventRows
-    .slice(1)
-    .filter(r => r[1] && (r[4] || '').trim().toLowerCase() === 'yes')
+    .slice(4)
+    .filter(r => r[1] && r[1].trim() && (r[4] || '').trim().toLowerCase() === 'yes')
     .map(r => ({
       month:       (r[0] || '').trim(),
       day:         (r[1] || '').trim(),
