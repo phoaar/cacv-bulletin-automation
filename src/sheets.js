@@ -21,6 +21,39 @@ async function getRange(sheets, sheetId, range) {
 }
 
 /**
+ * Fetch a range with UNFORMATTED_VALUE so date cells return as Google Sheets
+ * serial numbers (integers) rather than locale-formatted strings.
+ * Used for the roster to enable reliable date comparison.
+ */
+async function getRangeRaw(sheets, sheetId, range) {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range,
+    valueRenderOption: 'UNFORMATTED_VALUE',
+  });
+  return res.data.values || [];
+}
+
+/**
+ * Convert a Google Sheets date serial number to a JS Date (UTC midnight).
+ * Sheets epoch: Dec 30 1899 (includes Lotus 1-2-3 leap year bug → offset 25569).
+ */
+function sheetsSerialToDate(serial) {
+  return new Date((serial - 25569) * 86400 * 1000);
+}
+
+/**
+ * Format a roster date value (serial number or string) for display.
+ * e.g. serial 46085 → "16 Mar 2026"
+ */
+function formatRosterDate(val) {
+  if (typeof val !== 'number') return String(val || '').trim();
+  const d = sheetsSerialToDate(val);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/**
  * Build a key→value map from a two-column range (col A = key, col B = value).
  * Skips section-header rows (those with no value in col B).
  */
@@ -114,13 +147,25 @@ async function fetchBulletinData(sheetId) {
   // ── 5. ROSTER ───────────────────────────────────────────────────────────────
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
   // Columns: Date | Preacher | Chairperson | Worship Leader | Music / Band | PowerPoint | PA / Sound | Chief Usher | Ushers
-  const rosterRows = await getRange(sheets, sheetId, '👥 Roster!A:I');
+  // Use UNFORMATTED_VALUE so date cells return as serial numbers for reliable comparison.
+  const rosterRows = await getRangeRaw(sheets, sheetId, '👥 Roster!A:I');
+  const todayUtcMs = Date.UTC(
+    new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()
+  );
   const roster = rosterRows
     .slice(4)
-    .filter(r => r[0] && r[0].trim() && r[1] && r[1].trim())
+    .filter(r => {
+      if (!r[1] || !String(r[1]).trim()) return false; // must have a preacher
+      if (typeof r[0] === 'number') {
+        // Serial date — include only if today or in the future
+        return sheetsSerialToDate(r[0]).getTime() >= todayUtcMs;
+      }
+      // Non-numeric date (text) — include if non-empty, can't compare reliably
+      return !!(r[0] && String(r[0]).trim());
+    })
     .slice(0, 4)
     .map(r => ({
-      date:       (r[0] || '').trim(),
+      date:       formatRosterDate(r[0]),
       preacher:   (r[1] || '').trim(),
       chair:      (r[2] || '').trim(),
       worship:    (r[3] || '').trim(),

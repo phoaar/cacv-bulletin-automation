@@ -222,8 +222,7 @@ function nextService() {
     '• Auto-fill service team from Roster\n' +
     '• Clear sermon and Order of Service\n' +
     '• Delete announcements not marked "Keep next week?"\n' +
-    '• Delete prayer items not marked "Keep next week?"\n' +
-    '• Remove the top roster row (current service)\n\n' +
+    '• Delete prayer items not marked "Keep next week?"\n\n' +
     'Current date: ' + currentDateStr + '\n\nContinue?',
     ui.ButtonSet.OK_CANCEL
   );
@@ -233,26 +232,35 @@ function nextService() {
   var detailSheet = ss.getSheetByName('📋 Service Details');
   detailSheet.getRange('B6').setValue(newDate);
 
-  // ── 2. Read next week's team from the SECOND roster row (row after current) ─
-  // We read before deleting the top row, so the upcoming week is row index 1
-  // (0-indexed from data rows starting at sheet row 5).
+  // ── 2. Find the team for the new service date by searching the full roster ──
+  // Roster is kept permanently — search all rows for the one matching newDate.
   // Roster columns: A=Date B=Preacher C=Chair D=Worship E=Music F=PP G=PA H=ChiefUsher I=Ushers
   var rosterSheet   = ss.getSheetByName('👥 Roster');
   var rosterLastRow = rosterSheet.getLastRow();
   var upcomingTeam  = {};
-  if (rosterLastRow >= 6) {
-    // Row 6 is the second data row — the upcoming service after current
-    var upcomingRow = rosterSheet.getRange(6, 1, 1, 9).getValues()[0];
-    upcomingTeam = {
-      'Preacher':       String(upcomingRow[1] || '').trim(),
-      'Chairperson':    String(upcomingRow[2] || '').trim(),
-      'Worship Leader': String(upcomingRow[3] || '').trim(),
-      'Music / Band':   String(upcomingRow[4] || '').trim(),
-      'PowerPoint':     String(upcomingRow[5] || '').trim(),
-      'PA / Sound':     String(upcomingRow[6] || '').trim(),
-      'Chief Usher':    String(upcomingRow[7] || '').trim(),
-      'Ushers':         String(upcomingRow[8] || '').trim(),
-    };
+  if (rosterLastRow >= 5) {
+    var rosterData      = rosterSheet.getRange(5, 1, rosterLastRow - 4, 9).getValues();
+    var newDateMidnight = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+    for (var ri = 0; ri < rosterData.length; ri++) {
+      var rVal = rosterData[ri][0];
+      if (!rVal) continue;
+      var rDate = rVal instanceof Date
+        ? new Date(rVal.getFullYear(), rVal.getMonth(), rVal.getDate())
+        : new Date(rVal);
+      if (!isNaN(rDate.getTime()) && rDate.getTime() === newDateMidnight.getTime()) {
+        upcomingTeam = {
+          'Preacher':       String(rosterData[ri][1] || '').trim(),
+          'Chairperson':    String(rosterData[ri][2] || '').trim(),
+          'Worship Leader': String(rosterData[ri][3] || '').trim(),
+          'Music / Band':   String(rosterData[ri][4] || '').trim(),
+          'PowerPoint':     String(rosterData[ri][5] || '').trim(),
+          'PA / Sound':     String(rosterData[ri][6] || '').trim(),
+          'Chief Usher':    String(rosterData[ri][7] || '').trim(),
+          'Ushers':         String(rosterData[ri][8] || '').trim(),
+        };
+        break;
+      }
+    }
   }
 
   // ── 3. Clear sermon fields; auto-fill team from roster; clear attendance ───
@@ -350,16 +358,10 @@ function nextService() {
     }
   }
 
-  // ── 7. Remove first data row from Roster (current service) ───────────────
-  if (rosterLastRow >= 5) {
-    // Row 5 is the first data row (rows 1-4 are header/instructions)
-    rosterSheet.deleteRow(5);
-  }
-
-  // ── 8. Re-apply colour highlights ─────────────────────────────────────────
+  // ── 7. Re-apply colour highlights ─────────────────────────────────────────
   highlightNewWeekFields();
 
-  // ── 9. Summary ────────────────────────────────────────────────────────────
+  // ── 8. Summary ────────────────────────────────────────────────────────────
   var teamFilled = Object.keys(upcomingTeam).filter(function(k) { return upcomingTeam[k]; }).length;
   ui.alert(
     '✓ Next Service Ready',
