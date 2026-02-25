@@ -226,6 +226,30 @@
     margin-top: 3px;
     font-style: italic;
   }
+  .bible-btns {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .bible-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+    font-size: 11.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .bible-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); }
+  .bible-btn svg { width: 11px; height: 11px; opacity: 0.7; flex-shrink: 0; }
+
   .preacher-tag {
     background: rgba(255,255,255,0.18);
     border: 1px solid rgba(255,255,255,0.3);
@@ -723,6 +747,16 @@
       <div class="sermon-eyebrow">This Week's Message</div>
       <div class="sermon-title">The Coming Kingdom</div>
       <div class="sermon-ref">Matthew 3:1–17</div>
+      <div class="bible-btns">
+        <a class="bible-btn" href="https://www.biblegateway.com/passage/?search=Matthew%203%3A1-17&version=NIV" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h5.5a2 2 0 0 1 2 2v9l-1.5-1.5H2V3z"/><path d="M14 3H8.5a0 0 0 0 0 0 0v9l1.5-1.5H14V3z" stroke-opacity=".5"/></svg>
+          BibleGateway
+        </a>
+        <a class="bible-btn" href="https://www.bible.com/bible/111/MAT.3.1-17.NIV" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="1" width="10" height="14" rx="1.5"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>
+          YouVersion
+        </a>
+      </div>
     </div>
     <div class="preacher-tag">Mr Tony Cheung</div>
   </div>
@@ -791,7 +825,8 @@
       <div class="team-chip"><div class="team-role">Chairperson</div><div class="team-name">Aaron Pho</div></div>
       <div class="team-chip"><div class="team-role">Worship</div><div class="team-name">Connie Gutierrez</div></div>
       <div class="team-chip"><div class="team-role">Music</div><div class="team-name">Emerald Law</div></div>
-      <div class="team-chip"><div class="team-role">PowerPoint / PA</div><div class="team-name">Hong Cheng · Isaac Lo</div></div>
+      <div class="team-chip"><div class="team-role">PowerPoint</div><div class="team-name">Hong Cheng</div></div>
+      <div class="team-chip"><div class="team-role">PA / Sound</div><div class="team-name">Isaac Lo</div></div>
       <div class="team-chip"><div class="team-role">Chief Usher</div><div class="team-name">Emerald Tsui</div></div>
       <div class="team-chip"><div class="team-role">Usher</div><div class="team-name">Emily Au, Hubert Kwok</div></div>
       <div class="team-chip"><div class="team-role">Flowers</div><div class="team-name">Candy &amp; Jett He</div></div>
@@ -909,9 +944,9 @@
   <div class="card" id="attendance">
     <div class="card-label">Last Week's Attendance</div>
     <div class="att-grid">
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">English Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Chinese Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Children's Service</div></div>
+      <div class="att-cell"><div class="att-n">43</div><div class="att-l">English Service</div></div>
+      <div class="att-cell"><div class="att-n">133</div><div class="att-l">Chinese Service</div></div>
+      <div class="att-cell"><div class="att-n">50</div><div class="att-l">Children's Service</div></div>
     </div>
   </div>
 
