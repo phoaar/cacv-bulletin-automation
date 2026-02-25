@@ -279,12 +279,35 @@ function nextService() {
     }
   }
 
-  // ── 4. Clear Order of Service details only (col C) ────────────────────────
-  // Keep the service items (col A=# col B=Item col D=Type) — only clear Details
-  var orderSheet = ss.getSheetByName('🗓 Order of Service');
+  // ── 4. Clear Order of Service details (col C); auto-link sermon/scripture ──
+  // Keeps items (col B) and types (col D) intact.
+  // Sermon rows → formula showing "Title — Preacher · Scripture" from Service Details
+  // Scripture rows → formula showing Scripture Reference from Service Details
+  // All other detail cells → cleared
+  var orderSheet   = ss.getSheetByName('🗓 Order of Service');
   var orderLastRow = orderSheet.getLastRow();
   if (orderLastRow > 4) {
-    orderSheet.getRange(5, 3, orderLastRow - 4, 1).clearContent();
+    // VLOOKUP helper — pulls a field value from the Service Details key-value tab
+    var sd = "'📋 Service Details'!A:B";
+    var lu = function(key) { return 'IFERROR(VLOOKUP("' + key + '",' + sd + ',2,0),"")'; };
+
+    var sermonFormula = '=' + lu('Sermon Title') +
+      '&IF(' + lu('Preacher') + '="","","  —  "&' + lu('Preacher') + ')' +
+      '&IF(' + lu('Scripture Reference') + '="","","  ·  "&' + lu('Scripture Reference') + ')';
+    var scriptureFormula = '=' + lu('Scripture Reference');
+
+    var orderData = orderSheet.getRange(5, 1, orderLastRow - 4, 4).getValues();
+    for (var oRow = 0; oRow < orderData.length; oRow++) {
+      var oType      = String(orderData[oRow][3]).trim().toLowerCase(); // col D = Type
+      var detailCell = orderSheet.getRange(5 + oRow, 3);
+      if (oType === 'sermon') {
+        detailCell.setFormula(sermonFormula);
+      } else if (oType === 'scripture') {
+        detailCell.setFormula(scriptureFormula);
+      } else {
+        detailCell.clearContent();
+      }
+    }
   }
 
   // ── 5. Announcements: delete rows where "Keep next week?" (col D) ≠ "Yes" ──
