@@ -277,18 +277,36 @@ async function fetchBulletinData(sheetId) {
     }));
 
   // ── 7. SETTINGS ─────────────────────────────────────────────────────────────
-  // Simple key-value tab. We look for the "Notification Emails" row.
+  // Simple key-value tab. We look for notification emails and staff contact rows.
   let notificationEmails = [];
+  let churchInfo = {
+    seniorPastorName:  'Rev Colin Wun',
+    seniorPastorPhone: '0434 190 205',
+    seniorPastorEmail: 'colinwun@cacv.org.au',
+    asstPastorName:    'Ps Kwok Kit Chan',
+    asstPastorPhone:   '0452 349 846',
+    asstPastorEmail:   'kwokit@cacv.org.au',
+    adminEmail:        'admin@cacv.org.au',
+  };
   try {
     const settingsRows = await getRange(sheets, sheetId, '⚙️  Settings!A:B');
     const settings = toKV(settingsRows);
     const emailStr = settings['Notification Emails'] || '';
     notificationEmails = emailStr.split(',').map(e => e.trim()).filter(Boolean);
+    churchInfo = {
+      seniorPastorName:  settings['Senior Pastor Name']     || churchInfo.seniorPastorName,
+      seniorPastorPhone: settings['Senior Pastor Phone']    || churchInfo.seniorPastorPhone,
+      seniorPastorEmail: settings['Senior Pastor Email']    || churchInfo.seniorPastorEmail,
+      asstPastorName:    settings['Assistant Pastor Name']  || churchInfo.asstPastorName,
+      asstPastorPhone:   settings['Assistant Pastor Phone'] || churchInfo.asstPastorPhone,
+      asstPastorEmail:   settings['Assistant Pastor Email'] || churchInfo.asstPastorEmail,
+      adminEmail:        settings['Admin Email']            || churchInfo.adminEmail,
+    };
   } catch (e) {
     // Settings tab doesn't exist yet — not a fatal error
   }
 
-  return { service, order, announcements, prayer, roster, events, notificationEmails };
+  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo };
 }
 
 /**

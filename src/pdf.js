@@ -6,9 +6,10 @@
  *
  * @param {string} htmlPath  Absolute path to the input HTML file
  * @param {string} pdfPath   Absolute path for the output PDF file
+ * @param {object} [opts]    Options: { landscape: boolean }
  * @returns {Promise<boolean>} true if PDF was generated, false if skipped
  */
-async function generatePdf(htmlPath, pdfPath) {
+async function generatePdf(htmlPath, pdfPath, opts = {}) {
   const chromePath = process.env.CHROME_PATH;
   if (!chromePath) {
     console.log('PDF generation skipped — CHROME_PATH not set.');
@@ -35,8 +36,11 @@ async function generatePdf(htmlPath, pdfPath) {
     await page.pdf({
       path:   pdfPath,
       format: 'A4',
+      landscape: !!opts.landscape,
       printBackground: false,
-      margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
+      margin: opts.landscape
+        ? { top: '0', bottom: '0', left: '0', right: '0' }
+        : { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
     });
     console.log(`PDF written to: ${pdfPath}`);
     return true;

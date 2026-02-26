@@ -25,10 +25,14 @@ function onOpen() {
     .addSeparator()
     .addItem('🧪 Send Test Notification',    'sendTestNotification')
     .addSeparator()
+    .addItem('🛡️ Re-apply Protections',      'applySheetProtections')
+    .addItem('✨ Refresh Formatting',        'setupConditionalFormatting')
+    .addSeparator()
     .addItem('⚙️  Setup (first time)',       'setup')
     .addToUi();
 
-  highlightNewWeekFields();
+  applySheetProtections();
+  setupConditionalFormatting();
 }
 
 // ── SETUP (run once) ─────────────────────────────────────────────────────────
@@ -399,43 +403,106 @@ function nextService() {
 
 // ── VISUAL CLARITY: COLOUR-CODE SERVICE DETAILS ──────────────────────────────
 
-function highlightNewWeekFields() {
-  var ss          = SpreadsheetApp.getActive();
-  var detailSheet = ss.getSheetByName('📋 Service Details');
-  if (!detailSheet) return;
 
-  // Colours
-  var YELLOW = '#FFF9C4'; // needs to be filled in before Sunday
-  var GREY   = '#F5F5F5'; // filled in AFTER the service
-  var GREEN  = '#E8F5E9'; // stable / carries over
+// ── SHEET PROTECTION: LOCK HEADERS & INSTRUCTIONS ─────────────────────────────
 
-  // Fields that need filling in (yellow)
-  var yellowFields = [
-    'Service Date', 'Sermon Title', 'Scripture Reference', 'Preacher', 'Chairperson',
-    'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea'
-  ];
+function applySheetProtections() {
+  var ss = SpreadsheetApp.getActive();
+  var sheets = ss.getSheets();
+  var me = Session.getEffectiveUser();
 
-  // Fields filled in after the service (grey)
-  var greyFields = [
-    'Attendance (English)', 'Attendance (Chinese)', "Attendance (Children's)"
-  ];
+  sheets.forEach(function(sheet) {
+    var name = sheet.getName();
 
-  // Fields that are stable (green)
-  var greenFields = ['Venue'];
+    // 1. Remove existing protections on this sheet
+    var protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+    protections.forEach(function(p) { p.remove(); });
 
-  var data = detailSheet.getRange('A:B').getValues();
-  for (var i = 0; i < data.length; i++) {
-    var label = String(data[i][0]).trim();
-    if (!label) continue;
-    var cell = detailSheet.getRange(i + 1, 2);
-
-    if (yellowFields.indexOf(label) !== -1) {
-      cell.setBackground(YELLOW);
-    } else if (greyFields.indexOf(label) !== -1) {
-      cell.setBackground(GREY);
-    } else if (greenFields.indexOf(label) !== -1) {
-      cell.setBackground(GREEN);
+    // 2. Lock Header Rows (1-4) on data tabs
+    var dataTabs = ['📋 Service Details', '🗓 Order of Service', '📢 Announcements', '🙏 Prayer Items', '👥 Roster', '📅 Events', '💰 Offering'];
+    if (dataTabs.indexOf(name) !== -1) {
+      var headerRange = sheet.getRange('1:4');
+      var p = headerRange.protect().setDescription('Header Protection — Row 1-4');
+      p.removeEditors(p.getEditors());
+      if (p.canEdit()) p.addEditor(me);
     }
+
+    // 3. Lock Column A in key-value tabs (Service Details & Settings)
+    if (name === '📋 Service Details' || name === '⚙️  Settings') {
+      var colA = sheet.getRange('A:A');
+      var p = colA.protect().setDescription('Label Protection — Column A');
+      p.removeEditors(p.getEditors());
+      if (p.canEdit()) p.addEditor(me);
+    }
+
+    // 4. Lock Column A (#) in list tabs
+    var listTabs = ['🗓 Order of Service', '📢 Announcements'];
+    if (listTabs.indexOf(name) !== -1) {
+      var colA = sheet.getRange('A:A');
+      var p = colA.protect().setDescription('Auto-Number Protection — Column A');
+      p.removeEditors(p.getEditors());
+      if (p.canEdit()) p.addEditor(me);
+    }
+
+    // 5. Full Lock for Instruction Tab
+    if (name === 'ℹ️ Instructions') {
+      var p = sheet.protect().setDescription('Instructions Protection');
+      p.removeEditors(p.getEditors());
+      if (p.canEdit()) p.addEditor(me);
+    }
+  });
+}
+
+// ── VISUAL CLARITY: DYNAMIC CONDITIONAL FORMATTING ────────────────────────────
+
+function setupConditionalFormatting() {
+  var ss = SpreadsheetApp.getActive();
+
+  // 1. SERVICE DETAILS: Required Yellow / Completed White
+  var detailSheet = ss.getSheetByName('📋 Service Details');
+  if (detailSheet) {
+    var range = detailSheet.getRange('B:B');
+    var rules = [];
+
+    // Yellow if empty (Required)
+    var yellowFields = [
+      'Service Date', 'Sermon Title', 'Scripture Reference', 'Preacher', 'Chairperson',
+      'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea'
+    ];
+    var yellowText = yellowFields.join('|');
+
+    // Rule: IF Column A matches a yellowField AND Column B is empty → Yellow
+    rules.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND(ISBLANK(B1), REGEXMATCH(A1, "' + yellowText + '"))')
+      .setBackground('#FFF9C4')
+      .setRanges([range])
+      .build());
+
+    // Rule: IF Column A matches a yellowField AND Column B is NOT empty → White (None)
+    rules.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND(NOT(ISBLANK(B1)), REGEXMATCH(A1, "' + yellowText + '"))')
+      .setBackground('#FFFFFF')
+      .setBorderColor('#E0E0E0')
+      .setRanges([range])
+      .build());
+
+    detailSheet.setConditionalFormatRules(rules);
+  }
+
+  // 2. ORDER OF SERVICE: Formula Safeguard (Red if formula overwritten)
+  var orderSheet = ss.getSheetByName('🗓 Order of Service');
+  if (orderSheet) {
+    var range = orderSheet.getRange('C5:C100');
+    var rules = [];
+
+    // Rule: IF row is 'Sermon' or 'Scripture' and cell doesn't start with '=' → Red
+    rules.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND(OR($D5="Sermon", $D5="Scripture"), NOT(ISFORMULA(C5)), NOT(ISBLANK(C5)))')
+      .setBackground('#FFEBEE')
+      .setFontColor('#B71C1C')
+      .build());
+
+    orderSheet.setConditionalFormatRules(rules);
   }
 }
 

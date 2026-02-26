@@ -7,9 +7,10 @@ const path = require('path');
 const { fetchBulletinData, updateRunStatus }  = require('./sheets');
 const { translateData }      = require('./translate');
 const { buildBulletin }      = require('./template');
-const { buildPrintBulletin } = require('./print-template');
+const { buildPrintBulletin, buildBookletBulletin } = require('./print-template');
 const { generatePdf }        = require('./pdf');
-const { validateBulletin }   = require('./validate');
+const { generateQrSvg }      = require('./qr');
+const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 
 // GitHub Pages URL for the live bulletin
@@ -70,7 +71,16 @@ async function main() {
   // ── Validate required fields ───────────────────────────────────────────────
   const validationIssues = validateBulletin(data);
   const translationIssues = failures.map(f => `Translation failed — ${f.field}: ${f.reason}`);
-  const allIssues = [...validationIssues, ...translationIssues];
+
+  console.log('Checking announcement links…');
+  const linkIssues = await validateLinks(data.announcements);
+  if (linkIssues.length > 0) {
+    console.warn(`\n⚠️  ${linkIssues.length} broken link(s):`);
+    linkIssues.forEach(i => console.warn(`   • ${i}`));
+    console.warn('');
+  }
+
+  const allIssues = [...validationIssues, ...translationIssues, ...linkIssues];
 
   if (validationIssues.length > 0) {
     console.warn(`\n⚠️  ${validationIssues.length} validation issue(s):`);
@@ -90,6 +100,11 @@ async function main() {
   fs.writeFileSync(outputPath, html, 'utf8');
   console.log(`\nDone! Bulletin written to:\n  ${outputPath}\n`);
 
+  // ── Generate QR code for live bulletin ───────────────────────────────────
+  console.log('Generating QR code…');
+  data.liveQrSvg = await generateQrSvg(LIVE_URL).catch(() => '');
+  data.liveUrl   = LIVE_URL;
+
   // ── Generate print PDF ────────────────────────────────────────────────────
   let pdfPath = null;
   try {
@@ -102,7 +117,20 @@ async function main() {
     const pdfGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath);
     if (pdfGenerated) pdfPath = printPdfPath;
   } catch (err) {
-    console.warn(`PDF generation failed: ${err.message}`);
+    console.warn(`Print PDF generation failed: ${err.message}`);
+  }
+
+  // ── Generate booklet PDF (2-up A4 landscape) ──────────────────────────────
+  try {
+    console.log('Building booklet HTML…');
+    const bookletHtml = buildBookletBulletin(data);
+    const bookletHtmlPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.html`);
+    fs.writeFileSync(bookletHtmlPath, bookletHtml, 'utf8');
+
+    const bookletPdfPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.pdf`);
+    await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { landscape: true });
+  } catch (err) {
+    console.warn(`Booklet PDF generation failed: ${err.message}`);
   }
 
   // ── Send notifications ─────────────────────────────────────────────────────
