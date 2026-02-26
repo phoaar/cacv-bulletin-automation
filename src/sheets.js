@@ -224,7 +224,7 @@ async function fetchBulletinData(sheetId) {
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
-  // Columns: Month | Day | Year | Event | Responsible | Show on bulletin? (optional — "no" = hide)
+  // Columns: Day | Month | Year | Event | Responsible | Show on bulletin? (optional — "no" = hide)
   // Events are auto-included if they fall within the service month + next month
   // and are on or after the service date. Set col F to "no" to manually hide an event.
   const eventRows = await getRange(sheets, sheetId, '📅 Events!A:F');
@@ -239,10 +239,10 @@ async function fetchBulletinData(sheetId) {
   const events = eventRows
     .slice(4)
     .filter(r => {
-      if (!(r[1] || '').trim()) return false; // must have a day
+      if (!(r[0] || '').trim()) return false; // must have a day
       if ((r[5] || '').trim().toLowerCase() === 'no') return false; // manually hidden
       if (svcDate && windowEnd) {
-        const evDate = parseEventDate(r[0], r[1], r[2], fallbackYear);
+        const evDate = parseEventDate(r[1], r[0], r[2], fallbackYear);
         if (evDate) {
           if (evDate < svcDate)   return false; // already passed
           if (evDate > windowEnd) return false; // beyond next month
@@ -251,8 +251,8 @@ async function fetchBulletinData(sheetId) {
       return true;
     })
     .map(r => ({
-      month:       (r[0] || '').trim(),
-      day:         (r[1] || '').trim(),
+      month:       (r[1] || '').trim(),
+      day:         (r[0] || '').trim(),
       event:       (r[3] || '').trim(),
       responsible: (r[4] || '').trim(),
     }));
