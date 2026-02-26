@@ -183,8 +183,8 @@ function generateNow() {
   var dateStr = getServiceDate();
 
   var result = ui.alert(
-    'Generate Bulletin',
-    'Generate bulletin for ' + dateStr + ' now?\n\nThe live page will update in about 60 seconds.',
+    '⚡ Ready to generate?',
+    'This will build and publish the bulletin for ' + dateStr + '.\n\nProceed?',
     ui.ButtonSet.OK_CANCEL
   );
   if (result !== ui.Button.OK) return;
@@ -192,8 +192,10 @@ function generateNow() {
   var success = triggerGitHubWorkflow();
   if (success) {
     ui.alert(
-      '✓ Generating',
-      'Bulletin for ' + dateStr + ' is being generated.\n\nThe live page will update in about 60 seconds.',
+      '✓ Bulletin on its way!',
+      'The bulletin for ' + dateStr + ' is being built.\n\n' +
+      'The live page will be ready in about 60 seconds:\n' +
+      'https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/',
       ui.ButtonSet.OK
     );
   } else {
