@@ -15,6 +15,21 @@ const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 // GitHub Pages URL for the live bulletin
 const LIVE_URL = process.env.LIVE_URL || 'https://phoaar.github.io/cacv-bulletin-automation/';
 
+function cleanOldOutputs(dir, maxAgeDays) {
+  const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+  let removed = 0;
+  for (const file of fs.readdirSync(dir)) {
+    if (!/\.(html|pdf)$/.test(file)) continue;
+    const filePath = path.join(dir, file);
+    const { mtimeMs } = fs.statSync(filePath);
+    if (mtimeMs < cutoff) {
+      fs.unlinkSync(filePath);
+      removed++;
+    }
+  }
+  if (removed > 0) console.log(`Cleaned ${removed} output file(s) older than ${maxAgeDays} days.`);
+}
+
 async function main() {
   // ── Validate env ───────────────────────────────────────────────────────────
   const sheetId = process.env.SHEET_ID;
@@ -33,6 +48,11 @@ async function main() {
     console.error('Place your service account JSON at that path and try again.');
     process.exit(1);
   }
+
+  // ── Clean old outputs ──────────────────────────────────────────────────────
+  const outputDir = path.join(__dirname, '..', 'output');
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+  cleanOldOutputs(outputDir, 30);
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
   console.log('Fetching bulletin data from Google Sheets…');
@@ -63,9 +83,6 @@ async function main() {
   const html = buildBulletin(data, failures);
 
   // ── Write output ──────────────────────────────────────────────────────────
-  const outputDir = path.join(__dirname, '..', 'output');
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-
   const dateSlug = slugifyDate(data.service.date);
   const filename = `bulletin-${dateSlug}.html`;
   const outputPath = path.join(outputDir, filename);

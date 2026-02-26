@@ -7,6 +7,15 @@ function getClient() {
   const credPath = path.resolve(process.env.CREDENTIALS_PATH);
   const auth = new google.auth.GoogleAuth({
     keyFile: credPath,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  });
+  return google.sheets({ version: 'v4', auth });
+}
+
+function getWriteClient() {
+  const credPath = path.resolve(process.env.CREDENTIALS_PATH);
+  const auth = new google.auth.GoogleAuth({
+    keyFile: credPath,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
   return google.sheets({ version: 'v4', auth });
@@ -289,7 +298,7 @@ async function fetchBulletinData(sheetId) {
  * Silently skips if the Settings tab or rows are missing.
  */
 async function updateRunStatus(sheetId, status) {
-  const sheets = getClient();
+  const sheets = getWriteClient();
 
   let statusRowNum = null;
   let timeRowNum   = null;
