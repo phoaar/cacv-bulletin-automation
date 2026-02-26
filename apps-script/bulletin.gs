@@ -386,7 +386,7 @@ function nextService() {
   }
 
   // ── 7. Re-apply colour highlights ─────────────────────────────────────────
-  highlightNewWeekFields();
+  setupConditionalFormatting();
 
   // ── 8. Summary ────────────────────────────────────────────────────────────
   var teamFilled = Object.keys(upcomingTeam).filter(function(k) { return upcomingTeam[k]; }).length;
