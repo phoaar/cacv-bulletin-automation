@@ -253,25 +253,33 @@ function nextService() {
   var rosterLastRow = rosterSheet.getLastRow();
   var upcomingTeam  = {};
   if (rosterLastRow >= 5) {
-    var rosterData      = rosterSheet.getRange(5, 1, rosterLastRow - 4, 10).getValues();
+    var rosterData      = rosterSheet.getRange(5, 1, rosterLastRow - 4, 11).getValues();
     var newDateMidnight = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
     for (var ri = 0; ri < rosterData.length; ri++) {
-      var rVal = rosterData[ri][0];
+      var rVal     = rosterData[ri][0]; // Date text e.g. "1 Mar"
+      var rYearVal = rosterData[ri][1]; // Year number e.g. 2026
       if (!rVal) continue;
-      var rDate = rVal instanceof Date
-        ? new Date(rVal.getFullYear(), rVal.getMonth(), rVal.getDate())
-        : new Date(rVal);
-      if (!isNaN(rDate.getTime()) && rDate.getTime() === newDateMidnight.getTime()) {
+      var rDate;
+      if (rVal instanceof Date) {
+        // Legacy: full Date object stored in cell
+        rDate = new Date(rVal.getFullYear(), rVal.getMonth(), rVal.getDate());
+      } else {
+        // Text date + Year column
+        var parsed = new Date(String(rVal).trim() + ' ' + String(rYearVal || '').trim());
+        rDate = isNaN(parsed.getTime()) ? null : new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      }
+      if (!rDate || isNaN(rDate.getTime())) continue;
+      if (rDate.getTime() === newDateMidnight.getTime()) {
         upcomingTeam = {
-          'Preacher':       String(rosterData[ri][1] || '').trim(),
-          'Chairperson':    String(rosterData[ri][2] || '').trim(),
-          'Worship Leader': String(rosterData[ri][3] || '').trim(),
-          'Music / Band':   String(rosterData[ri][4] || '').trim(),
-          'PowerPoint':     String(rosterData[ri][5] || '').trim(),
-          'PA / Sound':     String(rosterData[ri][6] || '').trim(),
-          'Chief Usher':    String(rosterData[ri][7] || '').trim(),
-          'Ushers':         String(rosterData[ri][8] || '').trim(),
-          'Morning Tea':    String(rosterData[ri][9] || '').trim(),
+          'Preacher':       String(rosterData[ri][2]  || '').trim(),
+          'Chairperson':    String(rosterData[ri][3]  || '').trim(),
+          'Worship Leader': String(rosterData[ri][4]  || '').trim(),
+          'Music / Band':   String(rosterData[ri][5]  || '').trim(),
+          'PowerPoint':     String(rosterData[ri][6]  || '').trim(),
+          'PA / Sound':     String(rosterData[ri][7]  || '').trim(),
+          'Chief Usher':    String(rosterData[ri][8]  || '').trim(),
+          'Ushers':         String(rosterData[ri][9]  || '').trim(),
+          'Morning Tea':    String(rosterData[ri][10] || '').trim(),
         };
         break;
       }

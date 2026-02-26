@@ -193,35 +193,43 @@ async function fetchBulletinData(sheetId) {
 
   // ── 5. ROSTER ───────────────────────────────────────────────────────────────
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
-  // Columns: Date | Preacher | Chairperson | Worship Leader | Music / Band | PowerPoint | PA / Sound | Chief Usher | Ushers
+  // Columns: Date | Year | Preacher | Chairperson | Worship Leader | Music / Band | PowerPoint | PA / Sound | Chief Usher | Ushers | Morning Tea
   // Use UNFORMATTED_VALUE so date cells return as serial numbers for reliable comparison.
-  const rosterRows = await getRangeRaw(sheets, sheetId, '👥 Roster!A:J');
+  const rosterRows = await getRangeRaw(sheets, sheetId, '👥 Roster!A:K');
   const todayUtcMs = Date.UTC(
     new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()
   );
   const roster = rosterRows
     .slice(4)
     .filter(r => {
-      if (!r[1] || !String(r[1]).trim()) return false; // must have a preacher
+      if (!r[2] || !String(r[2]).trim()) return false; // must have a preacher (col C)
       if (typeof r[0] === 'number') {
-        // Serial date — include only if today or in the future
+        // Legacy: full serial date — include only if today or in the future
         return sheetsSerialToDate(r[0]).getTime() >= todayUtcMs;
       }
-      // Non-numeric date (text) — include if non-empty, can't compare reliably
-      return !!(r[0] && String(r[0]).trim());
+      // Text date + Year column — parse and compare
+      const dateStr = String(r[0] || '').trim();
+      const year    = String(r[1] || '').trim();
+      if (dateStr && year) {
+        const parsed = parseServiceDate(`${dateStr} ${year}`);
+        if (parsed) return parsed.getTime() >= todayUtcMs;
+      }
+      return !!dateStr; // include if non-empty, can't compare reliably
     })
     .slice(0, 4)
     .map(r => ({
-      date:       formatRosterDate(r[0]),
-      preacher:   (r[1] || '').trim(),
-      chair:      (r[2] || '').trim(),
-      worship:    (r[3] || '').trim(),
-      music:      (r[4] || '').trim(),
-      powerpoint: (r[5] || '').trim(),
-      paSound:    (r[6] || '').trim(),
-      chiefUsher:  (r[7] || '').trim(),
-      ushers:      (r[8] || '').trim(),
-      morningTea:  (r[9] || '').trim(),
+      date:       typeof r[0] === 'number'
+                    ? formatRosterDate(r[0])
+                    : `${String(r[0] || '').trim()} ${String(r[1] || '').trim()}`.trim(),
+      preacher:   (r[2]  || '').trim(),
+      chair:      (r[3]  || '').trim(),
+      worship:    (r[4]  || '').trim(),
+      music:      (r[5]  || '').trim(),
+      powerpoint: (r[6]  || '').trim(),
+      paSound:    (r[7]  || '').trim(),
+      chiefUsher: (r[8]  || '').trim(),
+      ushers:     (r[9]  || '').trim(),
+      morningTea: (r[10] || '').trim(),
     }));
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────
