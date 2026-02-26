@@ -470,18 +470,22 @@ function setupConditionalFormatting() {
       'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea',
       'Attendance (English)', 'Attendance (Chinese)', "Attendance (Children's)"
     ];
-    var yellowText = yellowFields.join('|');
+    // Use exact OR match instead of REGEXMATCH to avoid issues with special regex
+    // characters in field names like parentheses in attendance fields.
+    var yellowOr = yellowFields.map(function(f) {
+      return 'A1="' + f.replace(/"/g, '""') + '"';
+    }).join(',');
 
-    // Rule: IF Column A matches a yellowField AND Column B is empty → Yellow
+    // Rule: IF Column A exactly matches a required field AND Column B is empty → Yellow
     rules.push(SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied('=AND(ISBLANK(B1), REGEXMATCH(A1, "' + yellowText + '"))')
+      .whenFormulaSatisfied('=AND(ISBLANK(B1),OR(' + yellowOr + '))')
       .setBackground('#FFF9C4')
       .setRanges([range])
       .build());
 
-    // Rule: IF Column A matches a yellowField AND Column B is NOT empty → White (None)
+    // Rule: IF Column A exactly matches a required field AND Column B is not empty → White
     rules.push(SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied('=AND(NOT(ISBLANK(B1)), REGEXMATCH(A1, "' + yellowText + '"))')
+      .whenFormulaSatisfied('=AND(NOT(ISBLANK(B1)),OR(' + yellowOr + '))')
       .setBackground('#FFFFFF')
       .setRanges([range])
       .build());
