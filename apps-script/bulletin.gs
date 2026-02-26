@@ -499,6 +499,7 @@ function setupConditionalFormatting() {
       .whenFormulaSatisfied('=AND(OR($D5="Sermon", $D5="Scripture"), NOT(ISFORMULA(C5)), NOT(ISBLANK(C5)))')
       .setBackground('#FFEBEE')
       .setFontColor('#B71C1C')
+      .setRanges([range])
       .build());
 
     orderSheet.setConditionalFormatRules(rules);
