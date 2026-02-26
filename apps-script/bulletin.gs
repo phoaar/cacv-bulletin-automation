@@ -467,7 +467,8 @@ function setupConditionalFormatting() {
     // Yellow if empty (Required)
     var yellowFields = [
       'Service Date', 'Sermon Title', 'Scripture Reference', 'Preacher', 'Chairperson',
-      'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea'
+      'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea',
+      'Attendance (English)', 'Attendance (Chinese)', "Attendance (Children's)"
     ];
     var yellowText = yellowFields.join('|');
 
