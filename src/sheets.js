@@ -261,7 +261,7 @@ async function fetchBulletinData(sheetId) {
   // Simple key-value tab. We look for the "Notification Emails" row.
   let notificationEmails = [];
   try {
-    const settingsRows = await getRange(sheets, sheetId, '⚙️ Settings!A:B');
+    const settingsRows = await getRange(sheets, sheetId, '⚙️  Settings!A:B');
     const settings = toKV(settingsRows);
     const emailStr = settings['Notification Emails'] || '';
     notificationEmails = emailStr.split(',').map(e => e.trim()).filter(Boolean);
@@ -284,7 +284,7 @@ async function updateRunStatus(sheetId, status) {
   let statusRowNum = null;
   let timeRowNum   = null;
   try {
-    const rows = await getRange(sheets, sheetId, '⚙️ Settings!A:A');
+    const rows = await getRange(sheets, sheetId, '⚙️  Settings!A:A');
     rows.forEach((row, idx) => {
       const label = (row[0] || '').trim();
       if (label === 'Last Run Status') statusRowNum = idx + 1;
@@ -307,8 +307,8 @@ async function updateRunStatus(sheetId, status) {
   });
 
   const data = [];
-  if (statusRowNum) data.push({ range: `⚙️ Settings!B${statusRowNum}`, values: [[status]] });
-  if (timeRowNum)   data.push({ range: `⚙️ Settings!B${timeRowNum}`,   values: [[timestamp]] });
+  if (statusRowNum) data.push({ range: `⚙️  Settings!B${statusRowNum}`, values: [[status]] });
+  if (timeRowNum)   data.push({ range: `⚙️  Settings!B${timeRowNum}`,   values: [[timestamp]] });
 
   try {
     await sheets.spreadsheets.values.batchUpdate({

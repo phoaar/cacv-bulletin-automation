@@ -628,7 +628,7 @@ function sendTestNotification() {
  * Returns an array of trimmed, non-empty email strings.
  */
 function getNotificationEmails_() {
-  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('⚙️ Settings');
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('⚙️  Settings');
   if (!settingsSheet) return [];
   var data = settingsSheet.getRange('A:B').getValues();
   for (var i = 0; i < data.length; i++) {
