@@ -26,6 +26,7 @@ function buildPrintTeam(s) {
     { role: 'PA / Sound',  name: s.paSound     },
     { role: 'Chief Usher', name: s.chiefUsher  },
     { role: 'Ushers',      name: s.usher       },
+    { role: 'Morning Tea', name: s.morningTea  },
   ];
   return roles
     .filter(r => r.name)

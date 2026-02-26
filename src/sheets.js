@@ -137,6 +137,7 @@ async function fetchBulletinData(sheetId) {
     chiefUsher:      details['Chief Usher']         || '',
     usher:           details['Ushers']              || '',
     flowers:         details['Flowers']             || '',
+    morningTea:      details['Morning Tea']         || '',
     attendanceEng:   details['Attendance (English)']      || '',
     attendanceChi:   details['Attendance (Chinese)']      || '',
     attendanceKids:  details["Attendance (Children's)"]   || '',
@@ -194,7 +195,7 @@ async function fetchBulletinData(sheetId) {
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
   // Columns: Date | Preacher | Chairperson | Worship Leader | Music / Band | PowerPoint | PA / Sound | Chief Usher | Ushers
   // Use UNFORMATTED_VALUE so date cells return as serial numbers for reliable comparison.
-  const rosterRows = await getRangeRaw(sheets, sheetId, '👥 Roster!A:I');
+  const rosterRows = await getRangeRaw(sheets, sheetId, '👥 Roster!A:J');
   const todayUtcMs = Date.UTC(
     new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()
   );
@@ -218,8 +219,9 @@ async function fetchBulletinData(sheetId) {
       music:      (r[4] || '').trim(),
       powerpoint: (r[5] || '').trim(),
       paSound:    (r[6] || '').trim(),
-      chiefUsher: (r[7] || '').trim(),
-      ushers:     (r[8] || '').trim(),
+      chiefUsher:  (r[7] || '').trim(),
+      ushers:      (r[8] || '').trim(),
+      morningTea:  (r[9] || '').trim(),
     }));
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────

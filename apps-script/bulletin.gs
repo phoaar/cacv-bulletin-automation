@@ -271,6 +271,7 @@ function nextService() {
           'PA / Sound':     String(rosterData[ri][6] || '').trim(),
           'Chief Usher':    String(rosterData[ri][7] || '').trim(),
           'Ushers':         String(rosterData[ri][8] || '').trim(),
+          'Morning Tea':    String(rosterData[ri][9] || '').trim(),
         };
         break;
       }
@@ -286,7 +287,7 @@ function nextService() {
   ];
   var teamFields = [
     'Preacher', 'Chairperson', 'Worship Leader', 'Music / Band',
-    'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers'
+    'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea'
   ];
   var detailData = detailSheet.getRange('A:B').getValues();
   for (var i = 0; i < detailData.length; i++) {
@@ -403,7 +404,7 @@ function highlightNewWeekFields() {
   // Fields that need filling in (yellow)
   var yellowFields = [
     'Service Date', 'Sermon Title', 'Scripture Reference', 'Preacher', 'Chairperson',
-    'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers'
+    'Worship Leader', 'Music / Band', 'PowerPoint', 'PA / Sound', 'Chief Usher', 'Ushers', 'Morning Tea'
   ];
 
   // Fields filled in after the service (grey)
