@@ -15,6 +15,7 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('📋 Bulletin')
     .addItem('⚡ Generate Now',              'generateNow')
+    .addItem('📄 View Print Version',        'viewPrintVersion')
     .addSeparator()
     .addItem('🗓 Next Service',               'nextService')
     .addSeparator()
@@ -198,6 +199,23 @@ function generateNow() {
   } else {
     ui.alert('Error', 'Could not trigger generation. Please check your GitHub token in ⚙️ Setup.', ui.ButtonSet.OK);
   }
+}
+
+// ── VIEW PRINT VERSION ───────────────────────────────────────────────────────
+
+function viewPrintVersion() {
+  var printUrl = 'https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/print.html';
+  var html = HtmlService.createHtmlOutput(
+    '<div style="font-family:sans-serif;padding:16px 20px;">' +
+    '<p style="margin:0 0 10px;font-size:13px;color:#555;">Opens the print-ready bulletin in a new tab.<br>Use <strong>Cmd+P</strong> (Mac) or <strong>Ctrl+P</strong> (Windows) to print or save as PDF.</p>' +
+    '<a href="' + printUrl + '" target="_blank" ' +
+    'style="display:inline-block;padding:9px 18px;background:#3D4A2A;color:#fff;' +
+    'text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">' +
+    '📄 Open Print Version →</a>' +
+    '<p style="margin:12px 0 0;font-size:11px;color:#999;">Make sure you\'ve run Generate Now first to get the latest version.</p>' +
+    '</div>'
+  ).setHeight(130).setWidth(380);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Print Version');
 }
 
 // ── NEXT SERVICE ─────────────────────────────────────────────────────────────
