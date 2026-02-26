@@ -253,7 +253,7 @@ function nextService() {
   var rosterLastRow = rosterSheet.getLastRow();
   var upcomingTeam  = {};
   if (rosterLastRow >= 5) {
-    var rosterData      = rosterSheet.getRange(5, 1, rosterLastRow - 4, 9).getValues();
+    var rosterData      = rosterSheet.getRange(5, 1, rosterLastRow - 4, 10).getValues();
     var newDateMidnight = new Date(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
     for (var ri = 0; ri < rosterData.length; ri++) {
       var rVal = rosterData[ri][0];
