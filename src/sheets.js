@@ -54,6 +54,52 @@ function formatRosterDate(val) {
 }
 
 /**
+ * Parse a service date string like "22nd February 2026" or "22 Feb 2026" into a local JS Date.
+ * Returns null if parsing fails.
+ */
+function parseServiceDate(dateStr) {
+  if (!dateStr) return null;
+  const months = {
+    january:0,february:1,march:2,april:3,may:4,june:5,
+    july:6,august:7,september:8,october:9,november:10,december:11,
+    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+  };
+  const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/i, '$1');
+  const parts = cleaned.split(/[\s,/\-]+/);
+  let day, month, year;
+  for (const p of parts) {
+    const num = parseInt(p, 10);
+    const key = p.toLowerCase();
+    if (!isNaN(num) && num > 31)                             year  = num;
+    else if (!isNaN(num) && num >= 1 && num <= 31 && !day)  day   = num;
+    else if (months[key] !== undefined)                      month = months[key];
+  }
+  if (day !== undefined && month !== undefined && year !== undefined) {
+    return new Date(year, month, day);
+  }
+  return null;
+}
+
+/**
+ * Parse an event date from separate month name, day, and year strings.
+ * Day may be a range like "15-16" — uses the start day.
+ * Falls back to fallbackYear if yearStr is empty.
+ */
+function parseEventDate(monthStr, dayStr, yearStr, fallbackYear) {
+  const months = {
+    january:0,february:1,march:2,april:3,may:4,june:5,
+    july:6,august:7,september:8,october:9,november:10,december:11,
+    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+  };
+  const month = months[(monthStr || '').toLowerCase().trim()];
+  if (month === undefined) return null;
+  const day = parseInt(dayStr); // handles "15", "15th", "15-16"
+  if (isNaN(day)) return null;
+  const year = parseInt(yearStr) || fallbackYear || new Date().getFullYear();
+  return new Date(year, month, day);
+}
+
+/**
  * Build a key→value map from a two-column range (col A = key, col B = value).
  * Skips section-header rows (those with no value in col B).
  */
@@ -178,16 +224,37 @@ async function fetchBulletinData(sheetId) {
 
   // ── 6. EVENTS ───────────────────────────────────────────────────────────────
   // Rows 0-2: title/instructions. Row 3: column headers. Data from row 4.
-  // Columns: Month | Day | Event | Responsible | Show on bulletin?
-  const eventRows = await getRange(sheets, sheetId, '📅 Events!A:E');
+  // Columns: Month | Day | Year | Event | Responsible | Show on bulletin? (optional — "no" = hide)
+  // Events are auto-included if they fall within the service month + next month
+  // and are on or after the service date. Set col F to "no" to manually hide an event.
+  const eventRows = await getRange(sheets, sheetId, '📅 Events!A:F');
+
+  const svcDate = parseServiceDate(service.date);
+  const fallbackYear = svcDate ? svcDate.getFullYear() : new Date().getFullYear();
+  // Window end = last day of the month after the service month
+  const windowEnd = svcDate
+    ? new Date(svcDate.getFullYear(), svcDate.getMonth() + 2, 0)
+    : null;
+
   const events = eventRows
     .slice(4)
-    .filter(r => r[1] && r[1].trim() && (r[4] || '').trim().toLowerCase() === 'yes')
+    .filter(r => {
+      if (!(r[1] || '').trim()) return false; // must have a day
+      if ((r[5] || '').trim().toLowerCase() === 'no') return false; // manually hidden
+      if (svcDate && windowEnd) {
+        const evDate = parseEventDate(r[0], r[1], r[2], fallbackYear);
+        if (evDate) {
+          if (evDate < svcDate)   return false; // already passed
+          if (evDate > windowEnd) return false; // beyond next month
+        }
+      }
+      return true;
+    })
     .map(r => ({
       month:       (r[0] || '').trim(),
       day:         (r[1] || '').trim(),
-      event:       (r[2] || '').trim(),
-      responsible: (r[3] || '').trim(),
+      event:       (r[3] || '').trim(),
+      responsible: (r[4] || '').trim(),
     }));
 
   // ── 7. SETTINGS ─────────────────────────────────────────────────────────────
