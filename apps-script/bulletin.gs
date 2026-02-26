@@ -482,7 +482,6 @@ function setupConditionalFormatting() {
     rules.push(SpreadsheetApp.newConditionalFormatRule()
       .whenFormulaSatisfied('=AND(NOT(ISBLANK(B1)), REGEXMATCH(A1, "' + yellowText + '"))')
       .setBackground('#FFFFFF')
-      .setBorderColor('#E0E0E0')
       .setRanges([range])
       .build());
 
