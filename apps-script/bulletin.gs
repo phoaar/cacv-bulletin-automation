@@ -23,6 +23,8 @@ function onOpen() {
     .addItem('📅 Schedule for Custom Date',  'scheduleCustom')
     .addItem('❌ Cancel Scheduled Run',      'cancelSchedule')
     .addSeparator()
+    .addItem('🧪 Send Test Notification',    'sendTestNotification')
+    .addSeparator()
     .addItem('⚙️  Setup (first time)',       'setup')
     .addToUi();
 
@@ -41,18 +43,10 @@ function setup() {
   );
   if (tokenResult.getSelectedButton() !== ui.Button.OK) return;
 
-  var emailResult = ui.prompt(
-    '⚙️ Setup — Admin Email',
-    'Enter the admin email address to receive confirmation emails:',
-    ui.ButtonSet.OK_CANCEL
-  );
-  if (emailResult.getSelectedButton() !== ui.Button.OK) return;
-
   var props = PropertiesService.getScriptProperties();
   props.setProperty('GITHUB_TOKEN', tokenResult.getResponseText().trim());
-  props.setProperty('ADMIN_EMAIL',  emailResult.getResponseText().trim());
 
-  ui.alert('✓ Setup complete', 'GitHub token and admin email saved.\n\nYou can now use "Generate Now" and "Schedule for This Week".', ui.ButtonSet.OK);
+  ui.alert('✓ Setup complete', 'GitHub token saved.\n\nNotification recipients are managed in the ⚙️ Settings tab.\n\nYou can now use "Generate Now" and "Schedule for This Week".', ui.ButtonSet.OK);
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -550,15 +544,15 @@ function scheduleCustom() {
 // ── SCHEDULED TRIGGER HANDLER ────────────────────────────────────────────────
 
 function onScheduledRun() {
-  var success = triggerGitHubWorkflow();
+  var success    = triggerGitHubWorkflow();
+  var recipients = getNotificationEmails_();
 
-  var adminEmail = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL');
-  if (adminEmail) {
-    var dateStr    = getServiceDate();
+  if (recipients.length > 0) {
+    var dateStr     = getServiceDate();
     var publishedAt = Utilities.formatDate(new Date(), TIMEZONE, 'EEEE d MMMM yyyy \'at\' h:mm a');
     if (success) {
       MailApp.sendEmail(
-        adminEmail,
+        recipients.join(', '),
         '✓ CACV Bulletin is live — ' + dateStr,
         'The bulletin for ' + dateStr + ' has been published successfully.\n' +
         'Published: ' + publishedAt + '\n\n' +
@@ -566,7 +560,7 @@ function onScheduledRun() {
       );
     } else {
       MailApp.sendEmail(
-        adminEmail,
+        recipients.join(', '),
         '⚠️ CACV Bulletin generation failed — ' + dateStr,
         'The scheduled bulletin generation for ' + dateStr + ' failed.\n' +
         'Attempted: ' + publishedAt + '\n\n' +
@@ -591,7 +585,62 @@ function cancelSchedule() {
   }
 }
 
+// ── TEST NOTIFICATION ─────────────────────────────────────────────────────────
+
+function sendTestNotification() {
+  var ui         = SpreadsheetApp.getUi();
+  var recipients = getNotificationEmails_();
+
+  if (recipients.length === 0) {
+    ui.alert(
+      'No recipients configured',
+      'Please add email addresses to the "Notification Emails" field in the ⚙️ Settings tab first.',
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  var result = ui.alert(
+    '🧪 Send Test Notification',
+    'This will send a test email to:\n' + recipients.join('\n') + '\n\nProceed?',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (result !== ui.Button.OK) return;
+
+  try {
+    MailApp.sendEmail(
+      recipients.join(', '),
+      '🧪 CACV Bulletin — Test Notification',
+      'This is a test notification from the CACV Bulletin Automation system.\n\n' +
+      'If you received this email, your notification settings are configured correctly.\n\n' +
+      'Notification recipients: ' + recipients.join(', ')
+    );
+    ui.alert('✓ Test email sent', 'Test notification sent to:\n' + recipients.join('\n'), ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('❌ Failed to send', 'Error: ' + e.message + '\n\nPlease check the email addresses in the ⚙️ Settings tab.', ui.ButtonSet.OK);
+  }
+}
+
 // ── INTERNAL ─────────────────────────────────────────────────────────────────
+
+/**
+ * Read notification email recipients from the Settings tab (cell B1 beside "Notification Emails").
+ * Returns an array of trimmed, non-empty email strings.
+ */
+function getNotificationEmails_() {
+  var settingsSheet = SpreadsheetApp.getActive().getSheetByName('⚙️ Settings');
+  if (!settingsSheet) return [];
+  var data = settingsSheet.getRange('A:B').getValues();
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim() === 'Notification Emails') {
+      var emailStr = String(data[i][1]).trim();
+      return emailStr
+        ? emailStr.split(',').map(function(e) { return e.trim(); }).filter(Boolean)
+        : [];
+    }
+  }
+  return [];
+}
 
 function deleteTriggers_() {
   var triggers = ScriptApp.getProjectTriggers();

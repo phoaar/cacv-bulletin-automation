@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const fs   = require('fs');
 const path = require('path');
-const { fetchBulletinData }  = require('./sheets');
+const { fetchBulletinData, updateRunStatus }  = require('./sheets');
 const { translateData }      = require('./translate');
 const { buildBulletin }      = require('./template');
 const { buildPrintBulletin } = require('./print-template');
@@ -103,6 +103,12 @@ async function main() {
   } else {
     console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
   }
+
+  // ── Update sheet status ────────────────────────────────────────────────────
+  const runStatus = allIssues.length === 0
+    ? '✓ Success'
+    : `⚠️ Issues (${allIssues.length})`;
+  await updateRunStatus(sheetId, runStatus);
 }
 
 /**

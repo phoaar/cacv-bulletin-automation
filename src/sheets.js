@@ -7,7 +7,7 @@ function getClient() {
   const credPath = path.resolve(process.env.CREDENTIALS_PATH);
   const auth = new google.auth.GoogleAuth({
     keyFile: credPath,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
   return google.sheets({ version: 'v4', auth });
 }
@@ -272,4 +272,53 @@ async function fetchBulletinData(sheetId) {
   return { service, order, announcements, prayer, roster, events, notificationEmails };
 }
 
-module.exports = { fetchBulletinData };
+/**
+ * Write the automation run status and timestamp back to the Settings tab.
+ * Looks for rows labelled "Last Run Status" and "Last Run Time" in col A,
+ * then updates the corresponding col B values.
+ * Silently skips if the Settings tab or rows are missing.
+ */
+async function updateRunStatus(sheetId, status) {
+  const sheets = getClient();
+
+  let statusRowNum = null;
+  let timeRowNum   = null;
+  try {
+    const rows = await getRange(sheets, sheetId, '⚙️ Settings!A:A');
+    rows.forEach((row, idx) => {
+      const label = (row[0] || '').trim();
+      if (label === 'Last Run Status') statusRowNum = idx + 1;
+      if (label === 'Last Run Time')   timeRowNum   = idx + 1;
+    });
+  } catch (e) {
+    console.warn(`Could not read Settings tab for status update: ${e.message}`);
+    return;
+  }
+
+  if (!statusRowNum && !timeRowNum) {
+    console.warn('Settings tab is missing "Last Run Status" / "Last Run Time" rows — skipping status update.');
+    return;
+  }
+
+  const timestamp = new Date().toLocaleString('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+  const data = [];
+  if (statusRowNum) data.push({ range: `⚙️ Settings!B${statusRowNum}`, values: [[status]] });
+  if (timeRowNum)   data.push({ range: `⚙️ Settings!B${timeRowNum}`,   values: [[timestamp]] });
+
+  try {
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: { valueInputOption: 'RAW', data },
+    });
+    console.log(`Sheet status updated: ${status} at ${timestamp}`);
+  } catch (e) {
+    console.warn(`Could not update sheet status: ${e.message}`);
+  }
+}
+
+module.exports = { fetchBulletinData, updateRunStatus };
