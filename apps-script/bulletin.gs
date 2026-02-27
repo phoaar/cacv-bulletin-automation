@@ -3,11 +3,26 @@
 // Then run setup() once to configure your GitHub token.
 // ────────────────────────────────────────────────────────────────────────────
 
-var GITHUB_OWNER   = 'phoaar';
-var GITHUB_REPO    = 'cacv-bulletin-automation';
-var WORKFLOW_FILE  = 'generate-bulletin.yml';
-var PUBLISH_BRANCH = 'main';
-var TIMEZONE       = 'Australia/Melbourne';
+// GITHUB_OWNER, GITHUB_REPO, WORKFLOW_FILE, and PUBLISH_BRANCH are stored in
+// ScriptProperties (set via ⚙️ Setup) so this file can be shared without
+// exposing repository details or requiring code edits.
+var TIMEZONE = 'Australia/Melbourne';
+
+/**
+ * Read all configuration from ScriptProperties.
+ * Falls back to sensible defaults for workflow/branch so only
+ * the owner, repo, and token are mandatory in setup.
+ */
+function getConfig_() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    owner:    props.getProperty('GITHUB_OWNER')   || '',
+    repo:     props.getProperty('GITHUB_REPO')    || '',
+    workflow: props.getProperty('WORKFLOW_FILE')  || 'generate-bulletin.yml',
+    branch:   props.getProperty('PUBLISH_BRANCH') || 'main',
+    token:    props.getProperty('GITHUB_TOKEN')   || '',
+  };
+}
 
 // ── MENU ────────────────────────────────────────────────────────────────────
 
@@ -38,19 +53,62 @@ function onOpen() {
 // ── SETUP (run once) ─────────────────────────────────────────────────────────
 
 function setup() {
-  var ui = SpreadsheetApp.getUi();
+  var ui    = SpreadsheetApp.getUi();
+  var props = PropertiesService.getScriptProperties();
 
+  // ── Step 1: GitHub Owner ──────────────────────────────────────────────────
+  var ownerResult = ui.prompt(
+    '⚙️ Setup (1/3) — GitHub Owner',
+    'Enter your GitHub username or organisation name.\n\nExample: phoaar',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (ownerResult.getSelectedButton() !== ui.Button.OK) return;
+  var owner = ownerResult.getResponseText().trim();
+  if (!owner) { ui.alert('Setup cancelled', 'GitHub owner cannot be blank.', ui.ButtonSet.OK); return; }
+
+  // ── Step 2: GitHub Repo ───────────────────────────────────────────────────
+  var repoResult = ui.prompt(
+    '⚙️ Setup (2/3) — GitHub Repository',
+    'Enter the repository name (not the full URL).\n\nExample: cacv-bulletin-automation',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (repoResult.getSelectedButton() !== ui.Button.OK) return;
+  var repo = repoResult.getResponseText().trim();
+  if (!repo) { ui.alert('Setup cancelled', 'Repository name cannot be blank.', ui.ButtonSet.OK); return; }
+
+  // ── Step 3: GitHub Token ──────────────────────────────────────────────────
   var tokenResult = ui.prompt(
-    '⚙️ Setup — GitHub Token',
-    'Paste your GitHub Personal Access Token below.\n(Needs "Actions: Read and write" permission)',
+    '⚙️ Setup (3/3) — GitHub Token',
+    'Paste your GitHub Fine-Grained Personal Access Token.\n\n' +
+    '⚠️  Security: Use a fine-grained token (not a classic PAT) with the\n' +
+    'MINIMUM required scope:\n' +
+    '  • Repository access: only this repository\n' +
+    '  • Permissions → Actions → Read and write\n' +
+    '  • No other permissions needed\n\n' +
+    'This limits the impact if the token is ever compromised.',
     ui.ButtonSet.OK_CANCEL
   );
   if (tokenResult.getSelectedButton() !== ui.Button.OK) return;
+  var token = tokenResult.getResponseText().trim();
+  if (!token) { ui.alert('Setup cancelled', 'Token cannot be blank.', ui.ButtonSet.OK); return; }
 
-  var props = PropertiesService.getScriptProperties();
-  props.setProperty('GITHUB_TOKEN', tokenResult.getResponseText().trim());
+  // ── Save all values ───────────────────────────────────────────────────────
+  props.setProperty('GITHUB_OWNER', owner);
+  props.setProperty('GITHUB_REPO',  repo);
+  props.setProperty('GITHUB_TOKEN', token);
+  // Preserve existing workflow/branch if already configured
+  if (!props.getProperty('WORKFLOW_FILE'))  props.setProperty('WORKFLOW_FILE',  'generate-bulletin.yml');
+  if (!props.getProperty('PUBLISH_BRANCH')) props.setProperty('PUBLISH_BRANCH', 'main');
 
-  ui.alert('✓ Setup complete', 'GitHub token saved.\n\nNotification recipients are managed in the ⚙️ Settings tab.\n\nYou can now use "Generate Now" and "Schedule for This Week".', ui.ButtonSet.OK);
+  ui.alert(
+    '✓ Setup complete',
+    'Configuration saved:\n' +
+    '  Repository: ' + owner + '/' + repo + '\n' +
+    '  Token: saved ✓\n\n' +
+    'Notification recipients are managed in the ⚙️ Settings tab.\n\n' +
+    'You can now use "Generate Now" and "Schedule for This Week".',
+    ui.ButtonSet.OK
+  );
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -147,27 +205,27 @@ function getServiceDateRaw() {
 }
 
 function triggerGitHubWorkflow() {
-  var token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
-  if (!token) {
+  var cfg = getConfig_();
+  if (!cfg.token || !cfg.owner || !cfg.repo) {
     SpreadsheetApp.getUi().alert(
       'Setup required',
-      'GitHub token not configured.\nPlease run Bulletin → ⚙️ Setup first.',
+      'Repository or token not configured.\nPlease run Bulletin → ⚙️ Setup first.',
       SpreadsheetApp.getUi().ButtonSet.OK
     );
     return false;
   }
 
-  var url = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO +
-            '/actions/workflows/' + WORKFLOW_FILE + '/dispatches';
+  var url = 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo +
+            '/actions/workflows/' + cfg.workflow + '/dispatches';
 
   var response = UrlFetchApp.fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ' + token,
+      'Authorization': 'Bearer ' + cfg.token,
       'Accept':        'application/vnd.github.v3+json',
       'Content-Type':  'application/json',
     },
-    payload:            JSON.stringify({ ref: PUBLISH_BRANCH }),
+    payload:            JSON.stringify({ ref: cfg.branch }),
     muteHttpExceptions: true,
   });
 
@@ -189,11 +247,12 @@ function generateNow() {
 
   var success = triggerGitHubWorkflow();
   if (success) {
+    var cfg = getConfig_();
     ui.alert(
       '✓ Bulletin on its way!',
       'The bulletin for ' + dateStr + ' is being built.\n\n' +
       'The live page will be ready in about 60 seconds:\n' +
-      'https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/',
+      'https://' + cfg.owner + '.github.io/' + cfg.repo + '/',
       ui.ButtonSet.OK
     );
   } else {
@@ -204,7 +263,8 @@ function generateNow() {
 // ── VIEW PRINT VERSION ───────────────────────────────────────────────────────
 
 function viewPrintVersion() {
-  var printUrl = 'https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/print.html';
+  var cfg      = getConfig_();
+  var printUrl = 'https://' + cfg.owner + '.github.io/' + cfg.repo + '/print.html';
   var html = HtmlService.createHtmlOutput(
     '<div style="font-family:sans-serif;padding:16px 20px;">' +
     '<p style="margin:0 0 10px;font-size:13px;color:#555;">Opens the print-ready bulletin in a new tab.<br>Use <strong>Cmd+P</strong> (Mac) or <strong>Ctrl+P</strong> (Windows) to print or save as PDF.</p>' +
@@ -629,6 +689,7 @@ function onScheduledRun() {
   var recipients = getNotificationEmails_();
 
   if (recipients.length > 0) {
+    var cfg         = getConfig_();
     var dateStr     = getServiceDate();
     var publishedAt = Utilities.formatDate(new Date(), TIMEZONE, 'EEEE d MMMM yyyy \'at\' h:mm a');
     if (success) {
@@ -637,7 +698,7 @@ function onScheduledRun() {
         '✓ CACV Bulletin is live — ' + dateStr,
         'The bulletin for ' + dateStr + ' has been published successfully.\n' +
         'Published: ' + publishedAt + '\n\n' +
-        'View it at: https://' + GITHUB_OWNER + '.github.io/' + GITHUB_REPO + '/'
+        'View it at: https://' + cfg.owner + '.github.io/' + cfg.repo + '/'
       );
     } else {
       MailApp.sendEmail(
