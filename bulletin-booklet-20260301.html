@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CACV Bulletin Print — Sunday, 1 March 2026</title>
+<title>CACV Bulletin Booklet — Sunday, 1 March 2026</title>
 <style>
   @page {
-    size: A5;
-    margin: 8mm;
+    size: A4 landscape;
+    margin: 0;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -153,25 +153,45 @@
     margin-bottom: 1mm;
   }
 
-  /* ── PAGE BREAKS ── */
-  .page { page-break-after: always; }
+  /* ── BOOKLET SHEET LAYOUT ── */
+  body { background: #fff; }
 
-  /* ── COVER PAGE LAYOUT ── */
-  .page.cover {
+  .sheet {
+    display: flex;
+    width: 297mm;
+    height: 210mm;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .sheet:last-child { page-break-after: auto; }
+
+  .panel {
+    width: 148.5mm;
+    height: 210mm;
+    padding: 8mm;
+    overflow: hidden;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+  }
+  .panel.left {
+    border-right: 0.5pt dashed #bbb;
   }
 
-  /* ── PRINT HINT (screen only) ── */
+  /* Cover panel fills vertically */
+  .panel.cover {
+    justify-content: space-between;
+  }
+
+  /* Print hint (screen only) */
   .print-hint {
     display: block;
     font-family: Arial, sans-serif;
     font-size: 11px;
     background: #fffbcc;
     border: 1px solid #e0d800;
-    padding: 8px 12px;
-    margin-bottom: 12px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
     color: #555;
   }
   @media print { .print-hint { display: none; } }
@@ -180,11 +200,23 @@
 <body>
 
 <div class="print-hint">
-  💡 To print as an A5 booklet: Cmd+P → More settings → Pages per sheet: 2, then print double-sided and fold.
+  💡 Booklet layout: Print double-sided on A4, fold in half. Sheet 1: Prayer (left) / Cover (right). Sheet 2: Order (left) / Announcements (right).
 </div>
 
-<!-- ── PAGE 1: COVER ── -->
-<div class="page cover">
+<!-- ── SHEET 1 FRONT: [Page 4: Prayer | Page 1: Cover] ── -->
+<div class="sheet">
+  <div class="panel left">
+
+  <div class="section">
+    <div class="section-head">Prayer Items</div>
+    <div class="prayer-section">
+      <p><strong>For the World:</strong> <span class="bullet">•</span> Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation. <span class="bullet">•</span> We ask God's mercy for those suffering in war and conflict, especially in Israel, Palestine, Ukraine, and Russia. We ask God to end violence, establish peace and justice, and let the light of the Gospel shine in these dark places.</p>
+<p><strong>For Our International Workers:</strong> <span class="bullet">•</span> Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling. <span class="bullet">•</span> Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1. <span class="bullet">•</span> Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</p>
+<p><strong>For Our Church:</strong> <span class="bullet">•</span> Rentoul Hall: God's guidance and unity through the renovation process. <span class="bullet">•</span> Easter Camp (3–6 April): hearts prepared to rise and live for Jesus. <span class="bullet">•</span> Community Food Pantry: continued supply and committed volunteers.</p>
+    </div>
+  </div>
+  </div>
+  <div class="panel cover">
 
   <div class="cover-top">
     <svg class="cover-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 249.16 226.07" aria-label="CACV Logo" role="img">
@@ -243,10 +275,12 @@
       www.cacv.org.au
     </div>
   </div>
+  </div>
 </div>
 
-<!-- ── PAGE 2: ORDER OF SERVICE + SERVICE TEAM ── -->
-<div class="page">
+<!-- ── SHEET 2 BACK: [Page 2: Order | Page 3: Announcements] ── -->
+<div class="sheet">
+  <div class="panel left">
 
   <div class="section">
     <div class="section-head">Order of Service</div>
@@ -276,10 +310,8 @@
 <li><span class="role">Morning Tea:</span> Angela Li</li>
     </ul>
   </div>
-</div>
-
-<!-- ── PAGE 3: ANNOUNCEMENTS ── -->
-<div class="page">
+  </div>
+  <div class="panel">
 
   <div class="section-head">Announcements</div>
   <div class="announce-list">
@@ -289,18 +321,6 @@
   <li><strong>Travel Notice — April to June 2026</strong><span class="ann-body"> — Planning to travel Apr–Jun? Email admin@cacv.org.au to notify the roster team.</span></li>
 </ol>
   </div>
-</div>
-
-<!-- ── PAGE 4: PRAYER ── -->
-<div>
-
-  <div class="section">
-    <div class="section-head">Prayer Items</div>
-    <div class="prayer-section">
-      <p><strong>For the World:</strong> <span class="bullet">•</span> Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation. <span class="bullet">•</span> We ask God's mercy for those suffering in war and conflict, especially in Israel, Palestine, Ukraine, and Russia. We ask God to end violence, establish peace and justice, and let the light of the Gospel shine in these dark places.</p>
-<p><strong>For Our International Workers:</strong> <span class="bullet">•</span> Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling. <span class="bullet">•</span> Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1. <span class="bullet">•</span> Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</p>
-<p><strong>For Our Church:</strong> <span class="bullet">•</span> Rentoul Hall: God's guidance and unity through the renovation process. <span class="bullet">•</span> Easter Camp (3–6 April): hearts prepared to rise and live for Jesus. <span class="bullet">•</span> Community Food Pantry: continued supply and committed volunteers.</p>
-    </div>
   </div>
 </div>
 
