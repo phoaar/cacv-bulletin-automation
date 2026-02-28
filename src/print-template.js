@@ -42,7 +42,7 @@ function buildCoverPageHtml(data) {
     ? `<div class="qr-block">
   <div class="qr-label">Scan for Digital Bulletin</div>
   ${data.liveQrSvg}
-  <div class="qr-url">${esc(data.liveUrl || '')}</div>
+  <div class="qr-url">cacv.org.au/cacv-english-bulletin</div>
 </div>`
     : '';
   return `
@@ -205,8 +205,9 @@ const SHARED_STYLES = `
 
   /* ── QR BLOCK ── */
   .qr-block { text-align: center; margin-top: 4mm; }
-  .qr-block svg { width: 28mm; height: 28mm; display: block; margin: 1.5mm auto; }
-  .qr-label, .qr-url { font-family: Arial, sans-serif; font-size: 7pt; color: #333; }
+  .qr-block svg { width: 18mm; height: 18mm; display: block; margin: 1mm auto; }
+  .qr-label { font-family: Arial, sans-serif; font-size: 6pt; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+  .qr-url { font-family: Arial, sans-serif; font-size: 6pt; color: #555; }
 
   /* ── ORDER OF SERVICE + TEAM ── */
   .order-list {

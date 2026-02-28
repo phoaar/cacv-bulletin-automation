@@ -14,8 +14,8 @@ const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 const { canPublishWordPress, publishToWordPress } = require('./wordpress');
 
-// GitHub Pages URL for the live bulletin
-const LIVE_URL = process.env.LIVE_URL || 'https://phoaar.github.io/cacv-bulletin-automation/';
+// Official CACV Bulletin URL
+const LIVE_URL = process.env.LIVE_URL || 'https://cacv.org.au/cacv-english-bulletin/';
 
 function cleanOldOutputs(dir, maxAgeDays) {
   const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
