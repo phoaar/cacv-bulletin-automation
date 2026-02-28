@@ -1,65 +1,6 @@
 'use strict';
 
-/**
- * Escape HTML special characters to prevent injection.
- */
-function esc(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-/**
- * Build a BibleGateway NIV URL from a scripture reference string.
- * e.g. "Matthew 3:1–17" → https://www.biblegateway.com/passage/?search=Matthew+3%3A1-17&version=NIV
- */
-function bibleGatewayUrl(reference) {
-  if (!reference) return null;
-  const cleaned = reference.replace(/[–—]/g, '-');
-  return 'https://www.biblegateway.com/passage/?search=' + encodeURIComponent(cleaned) + '&version=NIV';
-}
-
-// YouVersion book abbreviations (NIV = version 111)
-const YV_BOOKS = {
-  'genesis':'GEN','exodus':'EXO','leviticus':'LEV','numbers':'NUM','deuteronomy':'DEU',
-  'joshua':'JOS','judges':'JDG','ruth':'RUT','1 samuel':'1SA','2 samuel':'2SA',
-  '1 kings':'1KI','2 kings':'2KI','1 chronicles':'1CH','2 chronicles':'2CH',
-  'ezra':'EZR','nehemiah':'NEH','esther':'EST','job':'JOB','psalm':'PSA','psalms':'PSA',
-  'proverbs':'PRO','ecclesiastes':'ECC','song of solomon':'SNG','song of songs':'SNG',
-  'isaiah':'ISA','jeremiah':'JER','lamentations':'LAM','ezekiel':'EZK','daniel':'DAN',
-  'hosea':'HOS','joel':'JOL','amos':'AMO','obadiah':'OBA','jonah':'JON','micah':'MIC',
-  'nahum':'NAM','habakkuk':'HAB','zephaniah':'ZEP','haggai':'HAG','zechariah':'ZEC','malachi':'MAL',
-  'matthew':'MAT','mark':'MRK','luke':'LUK','john':'JHN','acts':'ACT',
-  'romans':'ROM','1 corinthians':'1CO','2 corinthians':'2CO','galatians':'GAL',
-  'ephesians':'EPH','philippians':'PHP','colossians':'COL',
-  '1 thessalonians':'1TH','2 thessalonians':'2TH','1 timothy':'1TI','2 timothy':'2TI',
-  'titus':'TIT','philemon':'PHM','hebrews':'HEB','james':'JAS',
-  '1 peter':'1PE','2 peter':'2PE','1 john':'1JN','2 john':'2JN','3 john':'3JN',
-  'jude':'JUD','revelation':'REV',
-};
-
-/**
- * Build a YouVersion URL from a scripture reference string.
- * e.g. "Matthew 3:1–17" → https://www.bible.com/bible/111/MAT.3.1-17.NIV
- * Opens in the YouVersion app on mobile, falls back to bible.com on desktop.
- */
-function youVersionUrl(reference) {
-  if (!reference) return null;
-  // Normalise dashes and split into book + location
-  const ref = reference.replace(/[–—]/g, '-').trim();
-  // Match "Book Name Chapter:Verses" or "Book Name Chapter"
-  const match = ref.match(/^(.+?)\s+(\d+)(?::(.+))?$/);
-  if (!match) return 'https://www.bible.com/search/bible?q=' + encodeURIComponent(ref) + '&version_id=111';
-  const bookKey = match[1].trim().toLowerCase();
-  const chapter = match[2];
-  const verses  = match[3] ? match[3].replace(/\s/g, '') : null;
-  const abbr    = YV_BOOKS[bookKey];
-  if (!abbr) return 'https://www.bible.com/search/bible?q=' + encodeURIComponent(ref) + '&version_id=111';
-  const location = verses ? `${abbr}.${chapter}.${verses}` : `${abbr}.${chapter}`;
-  return `https://www.bible.com/bible/111/${location}.NIV`;
-}
+const { esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, autoLink } = require('./utils');
 
 /**
  * Build the Order of Service list items.
@@ -84,48 +25,9 @@ function buildOrder(order) {
  * Build the Service Team chips.
  */
 function buildTeam(s) {
-  const roles = [
-    { role: 'Preacher',    name: s.preacher    },
-    { role: 'Chairperson', name: s.chairperson },
-    { role: 'Worship',     name: s.worship     },
-    { role: 'Music',       name: s.music       },
-    { role: 'PowerPoint',  name: s.powerpoint  },
-    { role: 'PA / Sound',  name: s.paSound     },
-    { role: 'Chief Usher', name: s.chiefUsher  },
-    { role: 'Usher',       name: s.usher       },
-    { role: 'Morning Tea', name: s.morningTea  },
-    { role: 'Flowers',     name: s.flowers     },
-  ];
-
-  return roles
-    .filter(r => r.name)
-    .map(r => `      <div class="team-chip"><div class="team-role">${esc(r.role)}</div><div class="team-name">${esc(r.name)}</div></div>`)
+  return getTeamRoles(s)
+    .map(r => `      <div class="team-chip"><div class="team-role">${esc(r.label)}</div><div class="team-name">${esc(r.val)}</div></div>`)
     .join('\n');
-}
-
-/**
- * Auto-link URLs (with or without protocol) and email addresses in raw text.
- * Escapes all non-link text. Works on raw (unescaped) input.
- */
-function autoLink(rawText) {
-  const pattern = /(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-  let result = '';
-  let lastIndex = 0;
-  let match;
-  while ((match = pattern.exec(rawText)) !== null) {
-    result += esc(rawText.slice(lastIndex, match.index));
-    const url = match[1];
-    if (url.includes('@') && !url.startsWith('http')) {
-      result += `<a href="mailto:${esc(url)}">${esc(url)}</a>`;
-    } else if (url.startsWith('http')) {
-      result += `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`;
-    } else {
-      result += `<a href="https://${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`;
-    }
-    lastIndex = match.index + url.length;
-  }
-  result += esc(rawText.slice(lastIndex));
-  return result;
 }
 
 /**

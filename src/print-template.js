@@ -1,12 +1,6 @@
 'use strict';
 
-function esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+const { esc, getTeamRoles, autoLink } = require('./utils');
 
 function buildPrintOrder(order) {
   if (!order || order.length === 0) return '<li>No items listed</li>';
@@ -17,27 +11,15 @@ function buildPrintOrder(order) {
 }
 
 function buildPrintTeam(s) {
-  const roles = [
-    { role: 'Preacher',    name: s.preacher    },
-    { role: 'Chairperson', name: s.chairperson },
-    { role: 'Worship',     name: s.worship     },
-    { role: 'Music',       name: s.music       },
-    { role: 'PowerPoint',  name: s.powerpoint  },
-    { role: 'PA / Sound',  name: s.paSound     },
-    { role: 'Chief Usher', name: s.chiefUsher  },
-    { role: 'Ushers',      name: s.usher       },
-    { role: 'Morning Tea', name: s.morningTea  },
-  ];
-  return roles
-    .filter(r => r.name)
-    .map(r => `<li><span class="role">${esc(r.role)}:</span> ${esc(r.name)}</li>`)
+  return getTeamRoles(s)
+    .map(r => `<li><span class="role">${esc(r.label)}:</span> ${esc(r.val)}</li>`)
     .join('\n');
 }
 
 function buildPrintAnnouncements(announcements) {
   if (!announcements || announcements.length === 0) return '<p class="empty">No announcements this week.</p>';
   return '<ol>\n' + announcements.map(a => {
-    const body = a.body ? `<span class="ann-body"> — ${esc(a.body)}</span>` : '';
+    const body = a.body ? `<span class="ann-body"> — ${autoLink(a.body)}</span>` : '';
     return `  <li><strong>${esc(a.title)}</strong>${body}</li>`;
   }).join('\n') + '\n</ol>';
 }
@@ -48,20 +30,6 @@ function buildPrintPrayer(prayer) {
     const points = group.points.map(p => `<span class="bullet">•</span> ${esc(p)}`).join(' ');
     return `<p><strong>${esc(group.group)}:</strong> ${points}</p>`;
   }).join('\n');
-}
-
-function buildStaffFooter(churchInfo) {
-  const ci = churchInfo || {};
-  return `<div>
-      <div class="footer-head">Our Staff</div>
-      Senior Pastor<br>${esc(ci.seniorPastorName || 'Rev Colin Wun')}<br>
-      ${esc(ci.seniorPastorPhone || '0434 190 205')}<br>
-      ${esc(ci.seniorPastorEmail || 'colinwun@cacv.org.au')}<br><br>
-      Asst Pastor<br>${esc(ci.asstPastorName || 'Ps Kwok Kit Chan')}<br>
-      ${esc(ci.asstPastorPhone || '0452 349 846')}<br>
-      ${esc(ci.asstPastorEmail || 'kwokit@cacv.org.au')}<br><br>
-      Admin: ${esc(ci.adminEmail || 'admin@cacv.org.au')}
-    </div>`;
 }
 
 // ── Per-page content builders ──────────────────────────────────────────────────
