@@ -72,16 +72,20 @@ function prepareContent(html, liveUrl) {
       .entry-content { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
       #content { margin: 0 !important; padding: 0 !important; }
       
-      /* KILL THE CHEVRONS */
-      /* Target the specific Astra/Elementor list markers */
+      /* KILL THE CHEVRONS & CAPTCHA ERRORS */
       .order-list li::before,
       .order-list li::after,
       .order-row::before,
       .order-row::after,
       li::before, 
-      li::after { 
+      li::after,
+      .grecaptcha-badge,
+      .rc-anchor-center-item,
+      .rc-anchor-error-message { 
         content: none !important; 
         display: none !important; 
+        visibility: hidden !important;
+        opacity: 0 !important;
       }
       
       ul, li { list-style: none !important; }
