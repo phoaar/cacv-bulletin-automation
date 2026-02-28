@@ -42,6 +42,7 @@ jobs:
         run: |
           cp output/bulletin-[0-9]*.html output/index.html
           cp output/bulletin-print-[0-9]*.html output/print.html
+          cp -r assets output/assets
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
