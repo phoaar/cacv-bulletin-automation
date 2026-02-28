@@ -143,12 +143,20 @@
   .empty { font-style: italic; color: #555; }
 
   /* ── PRAYER ── */
-  .prayer-section p {
+  .prayer-section-print {
     font-size: 9.5pt;
-    margin-bottom: 2mm;
     line-height: 1.4;
   }
-  .bullet { font-size: 8pt; }
+  .prayer-group-print {
+    margin-bottom: 3mm;
+  }
+  .prayer-point-print {
+    margin-left: 4mm;
+    margin-top: 1mm;
+    display: flex;
+    gap: 2mm;
+  }
+  .bullet { font-size: 8pt; flex-shrink: 0; }
 
   /* ── FOOTER ── */
   .print-footer {
@@ -227,9 +235,17 @@
   <div class="section">
     <div class="section-head">Prayer Items</div>
     <div class="prayer-section">
-      <p><strong>For the World:</strong> <span class="bullet">•</span> Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation. <span class="bullet">•</span> We ask God's mercy for those suffering in war and conflict, especially in Israel, Palestine, Ukraine, and Russia. We pray that God will end violence, establish peace and justice, and let the light of the Gospel shine in these dark places.</p>
-<p><strong>For Our International Workers:</strong> <span class="bullet">•</span> Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling. <span class="bullet">•</span> Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1. <span class="bullet">•</span> Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</p>
-<p><strong>For Our Church:</strong> <span class="bullet">•</span> Rentoul Hall: God's guidance and unity through the renovation process. <span class="bullet">•</span> Easter Camp (3–6 April): hearts prepared to rise and live for Jesus. <span class="bullet">•</span> Community Food Pantry: continued supply and committed volunteers.</p>
+      <div class="prayer-group-print"><strong>For the World:</strong>
+<div class="prayer-point-print"><span class="bullet">•</span> Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation.</div>
+<div class="prayer-point-print"><span class="bullet">•</span> We beseech God's mercy upon those suffering in wars and conflicts, especially in Israel, Palestine, Ukraine, and Russia. We pray that God will end violence, establish peace and justice, and let the light of the Gospel shine in these dark places.</div></div>
+<div class="prayer-group-print"><strong>For Our International Workers:</strong>
+<div class="prayer-point-print"><span class="bullet">•</span> Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling.</div>
+<div class="prayer-point-print"><span class="bullet">•</span> Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1.</div>
+<div class="prayer-point-print"><span class="bullet">•</span> Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</div></div>
+<div class="prayer-group-print"><strong>For Our Church:</strong>
+<div class="prayer-point-print"><span class="bullet">•</span> Rentoul Hall: God's guidance and unity through the renovation process.</div>
+<div class="prayer-point-print"><span class="bullet">•</span> Easter Camp (3–6 April): hearts prepared to rise and live for Jesus.</div>
+<div class="prayer-point-print"><span class="bullet">•</span> Community Food Pantry: continued supply and committed volunteers.</div></div>
     </div>
   </div>
   </div>
