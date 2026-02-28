@@ -556,7 +556,7 @@ function buildBulletin(data, failures) {
   }
 
   /* ── ORDER OF SERVICE ── */
-  .order-list { list-style: none; }
+  .order-list { list-style: none !important; padding: 0 !important; margin: 0 !important; }
   .order-row {
     display: flex;
     align-items: center;
@@ -565,7 +565,9 @@ function buildBulletin(data, failures) {
     border-radius: 9px;
     transition: background 0.15s;
     cursor: default;
+    list-style-type: none !important;
   }
+  .order-row::before { content: none !important; } /* Kill any CSS chevrons */
   .order-row:hover { background: var(--sand); }
   .order-idx {
     width: 26px; height: 26px;

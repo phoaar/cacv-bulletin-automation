@@ -12,6 +12,7 @@ const { generatePdf }        = require('./pdf');
 const { generateQrSvg }      = require('./qr');
 const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
+const { canPublishWordPress, publishToWordPress } = require('./wordpress');
 
 // GitHub Pages URL for the live bulletin
 const LIVE_URL = process.env.LIVE_URL || 'https://phoaar.github.io/cacv-bulletin-automation/';
@@ -147,6 +148,14 @@ async function main() {
     }
   } else {
     console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
+  }
+
+  // ── Publish to WordPress ───────────────────────────────────────────────────
+  if (canPublishWordPress()) {
+    console.log('Publishing to WordPress…');
+    await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
+  } else {
+    console.log('WordPress publish skipped (WP_URL / WP_USERNAME / WP_APP_PASSWORD / WP_PAGE_ID not configured).');
   }
 
   // ── Update sheet status ────────────────────────────────────────────────────
