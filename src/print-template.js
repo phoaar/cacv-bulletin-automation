@@ -1,13 +1,9 @@
 'use strict';
 
-const { esc, getTeamRoles, autoLink } = require('./utils');
+const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems } = require('./utils');
 
 function buildPrintOrder(order) {
-  if (!order || order.length === 0) return '<li>No items listed</li>';
-  return order.map((item, i) => {
-    const detail = item.detail ? ` <span class="detail">${esc(item.detail)}</span>` : '';
-    return `<li>${i + 1}. ${esc(item.item)}${detail}</li>`;
-  }).join('\n');
+  return buildOrderItems(order, true);
 }
 
 function buildPrintTeam(s) {
@@ -17,19 +13,25 @@ function buildPrintTeam(s) {
 }
 
 function buildPrintAnnouncements(announcements) {
-  if (!announcements || announcements.length === 0) return '<p class="empty">No announcements this week.</p>';
-  return '<ol>\n' + announcements.map(a => {
-    const body = a.body ? `<span class="ann-body"> — ${autoLink(a.body)}</span>` : '';
-    return `  <li><strong>${esc(a.title)}</strong>${body}</li>`;
-  }).join('\n') + '\n</ol>';
+  return buildAnnouncementItems(announcements, true);
 }
 
 function buildPrintPrayer(prayer) {
-  if (!prayer || prayer.length === 0) return '<p class="empty">No prayer items this week.</p>';
-  return prayer.map(group => {
-    const points = group.points.map(p => `<span class="bullet">•</span> ${esc(p)}`).join(' ');
-    return `<p><strong>${esc(group.group)}:</strong> ${points}</p>`;
-  }).join('\n');
+  return buildPrayerItems(prayer, true);
+}
+
+function buildStaffFooter(churchInfo) {
+  const ci = churchInfo || {};
+  return `<div>
+      <div class="footer-head">Our Staff</div>
+      Senior Pastor<br>${esc(ci.seniorPastorName || 'Rev Colin Wun')}<br>
+      ${esc(ci.seniorPastorPhone || '0434 190 205')}<br>
+      ${esc(ci.seniorPastorEmail || 'colinwun@cacv.org.au')}<br><br>
+      Asst Pastor<br>${esc(ci.asstPastorName || 'Ps Kwok Kit Chan')}<br>
+      ${esc(ci.asstPastorPhone || '0452 349 846')}<br>
+      ${esc(ci.asstPastorEmail || 'kwokit@cacv.org.au')}<br><br>
+      Admin: ${esc(ci.adminEmail || 'admin@cacv.org.au')}
+    </div>`;
 }
 
 // ── Per-page content builders ──────────────────────────────────────────────────

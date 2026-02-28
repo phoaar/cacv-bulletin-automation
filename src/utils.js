@@ -119,4 +119,95 @@ function autoLink(rawText) {
   return result;
 }
 
-module.exports = { esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, autoLink };
+/**
+ * Shared logic for the Order of Service items.
+ */
+function buildOrderItems(order, isPrint = false) {
+  if (!order || order.length === 0) {
+    return isPrint 
+      ? '<li>No items listed</li>' 
+      : '<li class="order-row"><div class="order-idx">—</div><span class="order-name">No items listed</span></li>';
+  }
+
+  return order.map((item, i) => {
+    const isFocus = item.type === 'scripture' || item.type === 'sermon';
+    const focusClass = isFocus ? ' focus' : '';
+    
+    if (isPrint) {
+      const detail = item.detail ? ` <span class="detail">${esc(item.detail)}</span>` : '';
+      return `<li>${i + 1}. ${esc(item.item)}${detail}</li>`;
+    }
+
+    // Web logic
+    const sub = item.detail ? `<span class="order-sub">${esc(item.detail)}</span>` : '';
+    const bibleButtons = (item.type === 'scripture' && item.detail) ? `<span class="bible-btns-sm">
+        <a class="bible-btn-sm" href="${bibleGatewayUrl(item.detail)}" target="_blank" rel="noopener">BibleGateway</a>
+        <a class="bible-btn-sm" href="${youVersionUrl(item.detail)}" target="_blank" rel="noopener">YouVersion</a>
+      </span>` : '';
+    
+    return `      <li class="order-row${focusClass}"><div class="order-idx">${esc(String(i + 1))}</div><span class="order-name">${esc(item.item)}</span>${sub}${bibleButtons}</li>`;
+  }).join('\n');
+}
+
+/**
+ * Shared logic for Announcements.
+ */
+function buildAnnouncementItems(announcements, isPrint = false) {
+  if (!announcements || announcements.length === 0) {
+    return isPrint 
+      ? '<p class="empty">No announcements this week.</p>'
+      : '<p style="color:var(--muted);font-size:13px">No announcements this week.</p>';
+  }
+
+  if (isPrint) {
+    return '<ol>\n' + announcements.map(a => {
+      const body = a.body ? `<span class="ann-body"> — ${autoLink(a.body)}</span>` : '';
+      return `  <li><strong>${esc(a.title)}</strong>${body}</li>`;
+    }).join('\n') + '\n</ol>';
+  }
+
+  // Web Logic
+  return `<div class="announce-stack">\n` + announcements.map((a, i) => {
+    return `      <div class="announce">
+        <div class="announce-n">${i + 1}</div>
+        <div>
+          <div class="announce-t">${esc(a.title)}</div>
+          <div class="announce-b">${autoLink(a.body)}</div>
+        </div>
+      </div>`;
+  }).join('\n') + '\n    </div>';
+}
+
+/**
+ * Shared logic for Prayer Items.
+ */
+function buildPrayerItems(prayer, isPrint = false) {
+  if (!prayer || prayer.length === 0) {
+    return isPrint
+      ? '<p class="empty">No prayer items this week.</p>'
+      : '<p style="color:var(--muted);font-size:13px">No prayer items this week.</p>';
+  }
+
+  if (isPrint) {
+    return prayer.map(group => {
+      const points = group.points.map(p => `<span class="bullet">•</span> ${esc(p)}`).join(' ');
+      return `<p><strong>${esc(group.group)}:</strong> ${points}</p>`;
+    }).join('\n');
+  }
+
+  // Web Logic
+  return `<div class="prayer-groups">\n` + prayer.map(group => {
+    const items = group.points.map(p => `        <div class="prayer-item"><div class="prayer-pip"></div>${esc(p)}</div>`).join('\n');
+    return `      <div>
+        <div class="prayer-group-head">${esc(group.group)}</div>
+        <div class="prayer-items">
+${items}
+        </div>
+      </div>`;
+  }).join('\n') + '\n    </div>';
+}
+
+module.exports = { 
+  esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
+  autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
+};

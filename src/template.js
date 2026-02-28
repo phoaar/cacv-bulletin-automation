@@ -1,24 +1,15 @@
 'use strict';
 
-const { esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, autoLink } = require('./utils');
+const { 
+  esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
+  autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
+} = require('./utils');
 
 /**
  * Build the Order of Service list items.
  */
 function buildOrder(order) {
-  if (!order || order.length === 0) return '<li class="order-row"><div class="order-idx">—</div><span class="order-name">No items listed</span></li>';
-
-  return order.map((item, i) => {
-    const isFocus = item.type === 'scripture' || item.type === 'sermon';
-    const focusClass = isFocus ? ' focus' : '';
-    const sub = item.detail ? `<span class="order-sub">${esc(item.detail)}</span>` : '';
-    // Bible buttons only on scripture rows with a passage in the detail field
-    const bibleButtons = (item.type === 'scripture' && item.detail) ? `<span class="bible-btns-sm">
-        <a class="bible-btn-sm" href="${bibleGatewayUrl(item.detail)}" target="_blank" rel="noopener">BibleGateway</a>
-        <a class="bible-btn-sm" href="${youVersionUrl(item.detail)}" target="_blank" rel="noopener">YouVersion</a>
-      </span>` : '';
-    return `      <li class="order-row${focusClass}"><div class="order-idx">${esc(String(i + 1))}</div><span class="order-name">${esc(item.item)}</span>${sub}${bibleButtons}</li>`;
-  }).join('\n');
+  return buildOrderItems(order, false);
 }
 
 /**
@@ -34,34 +25,14 @@ function buildTeam(s) {
  * Build the Announcements list.
  */
 function buildAnnouncements(announcements) {
-  if (!announcements || announcements.length === 0) return '<p style="color:var(--muted);font-size:13px">No announcements this week.</p>';
-
-  return `<div class="announce-stack">\n` + announcements.map((a, i) => {
-    return `      <div class="announce">
-        <div class="announce-n">${i + 1}</div>
-        <div>
-          <div class="announce-t">${esc(a.title)}</div>
-          <div class="announce-b">${autoLink(a.body)}</div>
-        </div>
-      </div>`;
-  }).join('\n') + '\n    </div>';
+  return buildAnnouncementItems(announcements, false);
 }
 
 /**
  * Build the Prayer Items section.
  */
 function buildPrayer(prayer) {
-  if (!prayer || prayer.length === 0) return '<p style="color:var(--muted);font-size:13px">No prayer items this week.</p>';
-
-  return `<div class="prayer-groups">\n` + prayer.map(group => {
-    const items = group.points.map(p => `        <div class="prayer-item"><div class="prayer-pip"></div>${esc(p)}</div>`).join('\n');
-    return `      <div>
-        <div class="prayer-group-head">${esc(group.group)}</div>
-        <div class="prayer-items">
-${items}
-        </div>
-      </div>`;
-  }).join('\n') + '\n    </div>';
+  return buildPrayerItems(prayer, false);
 }
 
 /**
@@ -76,7 +47,6 @@ function buildRoster(roster) {
 
 /**
  * Build the Events table rows.
- * Suppress repeated month values (show blank in merged-style rows).
  */
 function buildEvents(events) {
   if (!events || events.length === 0) return '<tr><td colspan="4" style="color:var(--muted);text-align:center">No upcoming events</td></tr>';
