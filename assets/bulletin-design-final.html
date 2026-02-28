@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CACV Bulletin — Sunday, 1 March 2026</title>
+<title>CACV Bulletin — 22nd February 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -59,6 +59,7 @@
     isolation: isolate;
   }
 
+  /* Organic ink blob shapes */
   .hero::before {
     content: '';
     position: absolute;
@@ -82,6 +83,7 @@
     to   { transform: translate(30px, 20px) rotate(8deg) scale(1.08); }
   }
 
+  /* Card-style organic blob in hero top-left */
   .hero-blob {
     position: absolute;
     top: -40px; left: -40px;
@@ -92,6 +94,7 @@
     z-index: 0;
   }
 
+  /* Subtle grain on hero too */
   .hero-grain {
     position: absolute;
     inset: 0;
@@ -107,14 +110,6 @@
     padding: 60px 28px 52px;
     position: relative;
     z-index: 1;
-  }
-
-  .hero-logo {
-    display: block;
-    height: 56px;
-    width: auto;
-    color: #efeae0;
-    margin: 0 auto 16px;
   }
 
   .bulletin-chip {
@@ -234,52 +229,6 @@
     margin-top: 3px;
     font-style: italic;
   }
-  .bible-btns-sm {
-    display: inline-flex;
-    gap: 5px;
-    margin-left: 8px;
-    flex-shrink: 0;
-  }
-  .bible-btn-sm {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 9px;
-    border-radius: 100px;
-    border: 1px solid var(--fog);
-    background: var(--sand);
-    color: var(--muted);
-    font-size: 10.5px;
-    font-weight: 500;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-  }
-  .bible-btn-sm:hover { background: var(--fog); color: var(--ink); border-color: var(--fog); }
-
-  .bible-btns {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  .bible-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 12px;
-    border-radius: 100px;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.8);
-    font-size: 11.5px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-  .bible-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); }
-  .bible-btn svg { width: 11px; height: 11px; opacity: 0.7; flex-shrink: 0; }
-
   .preacher-tag {
     background: rgba(255,255,255,0.18);
     border: 1px solid rgba(255,255,255,0.3);
@@ -328,6 +277,7 @@
   .card:nth-child(7){animation-delay:.28s}
   .card:nth-child(8){animation-delay:.32s}
 
+  /* Organic ink smear accent — top-left corner */
   .card::before {
     content: '';
     position: absolute;
@@ -523,6 +473,7 @@
     border: 1px solid rgba(0,0,0,0.1);
     animation: up 0.45s cubic-bezier(0.22,1,0.36,1) 0.36s both;
   }
+  /* Organic blob inside hope card */
   .hope-card::before {
     content: '';
     position: absolute;
@@ -626,6 +577,7 @@
     font-weight: 600;
     margin-bottom: 18px;
   }
+  /* Staff */
   .footer-staff-row { margin-bottom: 16px; }
   .footer-staff-row:last-child { margin-bottom: 0; }
   .footer-staff-role {
@@ -640,6 +592,7 @@
   .footer-staff-contact { display: flex; flex-direction: column; gap: 1px; }
   .footer-staff-contact a { font-size: 12px; color: rgba(255,255,255,0.35); }
   .footer-staff-contact a:hover { color: var(--gold); }
+  /* Giving */
   .footer-giving-box {
     background: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.1);
@@ -654,11 +607,13 @@
   .footer-giving-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); font-weight: 600; }
   .footer-giving-val { font-size: 13.5px; color: rgba(255,255,255,0.75); font-weight: 500; }
   .footer-giving-note { font-size: 11.5px; color: rgba(255,255,255,0.25); line-height: 1.5; font-style: italic; }
+  /* Contact */
   .footer-contact-items { display: flex; flex-direction: column; gap: 11px; }
   .footer-contact-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
   .footer-contact-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; opacity: 0.6; }
   .footer-contact-item a { color: rgba(255,255,255,0.5); }
   .footer-contact-item a:hover { color: var(--gold); }
+  /* Base */
   .footer-base {
     display: flex;
     justify-content: space-between;
@@ -682,8 +637,6 @@
     .hope-cell:nth-child(3) { border-bottom: 1px solid rgba(255,255,255,0.05); }
     .att-grid { grid-template-columns: 1fr; }
     .sermon-inner { flex-direction: column; align-items: flex-start; }
-    .order-row { flex-wrap: wrap; }
-    .bible-btns-sm { flex-basis: 100%; margin-left: 40px; margin-top: 4px; }
   }
 
   /* ── STICKY NAV ── */
@@ -756,36 +709,15 @@
 </head>
 <body>
 
-
-<!-- TRANSLATION WARNING BANNER -->
-<div style="background:#7C3C3C;color:#fff;padding:14px 28px;font-family:'Instrument Sans',sans-serif;font-size:13.5px;line-height:1.6;display:flex;gap:12px;align-items:flex-start;">
-  <span style="font-size:18px;flex-shrink:0;">⚠️</span>
-  <div>
-    <strong>Translation warning — Admin only</strong><br>
-    1 field could not be translated and may still contain Chinese text:
-    <ul style="margin:6px 0 0;padding-left:18px;">
-      <li>pr_0_pt_1: 401 {&quot;type&quot;:&quot;error&quot;,&quot;error&quot;:{&quot;type&quot;:&quot;authentication_error&quot;,&quot;message&quot;:&quot;invalid x-api-key&quot;},&quot;request_id&quot;:&quot;req_011CYZtcT2nhhjym4bdXyN42&quot;}</li>
-    </ul>
-    Please check the bulletin before publishing and update the sheet manually if needed.
-  </div>
-</div>
-
 <!-- HERO -->
 <div class="hero">
   <div class="hero-blob"></div>
   <div class="hero-grain"></div>
   <div class="hero-inner">
-    <svg class="hero-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 249.16 226.07" aria-label="CACV Logo" role="img">
-      <path fill="currentColor" d="M89.52,106.01c3.63-14.52,15.3-27.72,15.3-27.72l-4.78-7.64-66.92,22.95C-10.85,111.75-2.17,142.4,9.22,149.98c5.74,3.83,20.08,8.61,20.08,8.61l-1.91,22.94h52.69l4.27-9.5,8.55,9.5h4.28s-10.52-64.05-7.65-75.52ZM29.3,146.16s-15.19-.42-17.21-10.52c-3.82-19.12,20.07-29.63,20.07-29.63l-2.87,40.15ZM78.05,108.88c-.7,8.33,3.66,42.91,6.09,61.2l-45.28-.02,4.78-67.88,43.02-15.29s-7.28,6.09-8.61,21.99Z"/>
-      <path fill="currentColor" d="M234.94,74.95h-72.11s-23.53,31.09-11.05,48.76c8.43,11.95,22.89,14.68,31.96,15.79,9.47.04,9.14,10.13,9.14,10.13v20.91h-21.03v10.99h53.54v-10.99h-21.03v-20.91s.02-10.21,9.7-10.2c9.24-1.19,23.14-4.01,31.41-15.72,12.48-17.67-10.52-48.76-10.52-48.76ZM234.94,117.96c-9.56,13.38-36.32,12.43-36.32,12.43,0,0-26.77.96-36.32-12.43-5.94-8.32-.47-21.89,4.97-31.57l61.94.03s15.75,17.52,5.73,31.54Z"/>
-      <polygon fill="currentColor" points="143.25 36.33 143.25 0 107.88 0 107.88 36.33 74.43 36.33 74.43 68.83 107.88 68.83 107.88 174.88 122.15 155.82 118.88 155.82 118.88 58.31 84.95 58.31 84.95 46.84 118.88 46.84 118.88 10.52 132.25 10.52 132.25 46.84 166.18 46.84 166.18 58.31 132.25 58.31 132.25 155.82 129.12 155.82 143.25 174.88 143.25 68.83 176.7 68.83 176.7 36.33 143.25 36.33"/>
-      <path fill="currentColor" d="M150.42,177.8l-24.86-43.02-24.85,43.02-31.55-43.02,7.65,91.29h97.5l7.64-91.29-31.54,43.02ZM163.69,215.09h-76.37s-2.87-40.16-2.87-40.16l17.2,21.99,23.9-40.63,23.9,40.63,17.21-21.99-2.97,40.16Z"/>
-      <path fill="currentColor" d="M211.72,199.14c5.9,0,10.61,4.8,10.61,10.8s-4.71,10.84-10.66,10.84-10.7-4.75-10.7-10.84,4.8-10.8,10.7-10.8h.05ZM211.67,200.82c-4.75,0-8.64,4.09-8.64,9.12s3.89,9.16,8.69,9.16c4.8.05,8.64-4.03,8.64-9.12s-3.84-9.17-8.64-9.17h-.05ZM209.65,216.23h-1.92v-12.05c1.01-.14,1.97-.28,3.41-.28,1.82,0,3.02.38,3.74.91.72.53,1.11,1.34,1.11,2.5,0,1.58-1.06,2.54-2.35,2.93v.09c1.05.19,1.77,1.15,2.02,2.93.29,1.87.57,2.59.77,2.98h-2.02c-.29-.39-.57-1.49-.82-3.08-.29-1.53-1.05-2.11-2.59-2.11h-1.34v5.19ZM209.65,209.56h1.39c1.59,0,2.93-.58,2.93-2.07,0-1.05-.77-2.11-2.93-2.11-.62,0-1.05.05-1.39.09v4.09Z"/>
-    </svg>
     <div class="bulletin-chip"><span class="chip-dot"></span> Weekly Bulletin</div>
     <div class="hero-service-tag">English Service</div>
     <h1 class="hero-title">Christian Alliance<br>Church of <em>Victoria</em></h1>
-    <p class="hero-date">Sunday, 1 March 2026</p>
+    <p class="hero-date">22nd February 2026</p>
     <div class="hero-pills">
       <span class="hero-pill">10:30 am – 12:00 pm</span>
       <span class="hero-pill">Rentoul Hall, Burwood</span>
@@ -798,9 +730,8 @@
   <div class="sermon-inner">
     <div>
       <div class="sermon-eyebrow">This Week's Message</div>
-      <div class="sermon-title"></div>
-      <div class="sermon-ref"></div>
-      
+      <div class="sermon-title">The Coming Kingdom</div>
+      <div class="sermon-ref">Matthew 3:1–17</div>
     </div>
     <div class="preacher-tag">Mr Tony Cheung</div>
   </div>
@@ -854,8 +785,8 @@
       <li class="order-row"><div class="order-idx">2</div><span class="order-name">Worship</span></li>
       <li class="order-row"><div class="order-idx">3</div><span class="order-name">Offering</span></li>
       <li class="order-row"><div class="order-idx">4</div><span class="order-name">Welcoming</span></li>
-      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span></li>
-      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">—  Mr Tony Cheung</span></li>
+      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span><span class="order-sub">Matthew 3:1–17</span></li>
+      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">The Coming Kingdom</span><span class="order-sub">Mr Tony Cheung</span></li>
       <li class="order-row"><div class="order-idx">7</div><span class="order-name">Response Song</span></li>
       <li class="order-row"><div class="order-idx">8</div><span class="order-name">Intercession</span></li>
     </ul>
@@ -865,16 +796,13 @@
   <div class="card" id="team">
     <div class="card-label">Service Team</div>
     <div class="team-grid">
-      <div class="team-chip"><div class="team-role">Preacher</div><div class="team-name">Mr Tony Cheung</div></div>
-      <div class="team-chip"><div class="team-role">Chairperson</div><div class="team-name">Eden Law</div></div>
-      <div class="team-chip"><div class="team-role">Worship</div><div class="team-name">Catherine Au</div></div>
-      <div class="team-chip"><div class="team-role">Music</div><div class="team-name">Youth Band</div></div>
-      <div class="team-chip"><div class="team-role">PowerPoint</div><div class="team-name">Oscar Ng</div></div>
-      <div class="team-chip"><div class="team-role">PA / Sound</div><div class="team-name">Aaron Pho</div></div>
-      <div class="team-chip"><div class="team-role">Chief Usher</div><div class="team-name">Henry Ko, Christopher Au</div></div>
-      <div class="team-chip"><div class="team-role">Usher</div><div class="team-name">Sophie Ng, Isaac Ma</div></div>
-      <div class="team-chip"><div class="team-role">Morning Tea</div><div class="team-name">Angela Li</div></div>
-      <div class="team-chip"><div class="team-role">Flowers</div><div class="team-name">Candy &amp; Jett He</div></div>
+      <div class="team-chip"><div class="team-role">Chairperson</div><div class="team-name">Aaron Pho</div></div>
+      <div class="team-chip"><div class="team-role">Worship</div><div class="team-name">Connie Gutierrez</div></div>
+      <div class="team-chip"><div class="team-role">Music</div><div class="team-name">Emerald Law</div></div>
+      <div class="team-chip"><div class="team-role">PowerPoint / PA</div><div class="team-name">Hong Cheng · Isaac Lo</div></div>
+      <div class="team-chip"><div class="team-role">Chief Usher</div><div class="team-name">Emerald Tsui · Emily Au</div></div>
+      <div class="team-chip"><div class="team-role">Usher</div><div class="team-name">Hubert Kwok</div></div>
+      <div class="team-chip"><div class="team-role">Flowers</div><div class="team-name">Candy & Jett He</div></div>
     </div>
   </div>
 
@@ -885,22 +813,36 @@
       <div class="announce">
         <div class="announce-n">1</div>
         <div>
-          <div class="announce-t">Monthly Prayer Meeting — 24 Feb, 8:00 pm via Zoom</div>
-          <div class="announce-b">Come together on the last Tuesday of each month to give thanks and pray. Zoom link: <a href="https://us02web.zoom.us/j/85831129890" target="_blank" rel="noopener">us02web.zoom.us/j/85831129890</a></div>
+          <div class="announce-t">English Service — Back at Rentoul Hall!</div>
+          <div class="announce-b">Praise God for His faithfulness and provision! Stay after today's service for our Thanksgiving and Chinese New Year lunch at Rentoul Hall. All are welcome!</div>
         </div>
       </div>
       <div class="announce">
         <div class="announce-n">2</div>
         <div>
-          <div class="announce-t">Easter Camp 2026 — 3–6 April, YMCA Camp Manyung</div>
-          <div class="announce-b">&quot;Rise and Live for Jesus&quot;. Adults $350 · Students $300 · Children $150 · Under 2 free. Register: <a href="https://forms.gle/vNzi7fo6ioEJVfyj9." target="_blank" rel="noopener">forms.gle/vNzi7fo6ioEJVfyj9.</a> Fees due 1 March.</div>
+          <div class="announce-t">Monthly Prayer Meeting — 24 Feb, 8:00 pm via Zoom</div>
+          <div class="announce-b">Come together on the last Tuesday of each month to give thanks and pray for our needs, the church and community. <a href="#">Join Zoom →</a></div>
         </div>
       </div>
       <div class="announce">
         <div class="announce-n">3</div>
         <div>
+          <div class="announce-t">Come and Know Your Missionary — 26 Feb, 8:30 pm via Zoom</div>
+          <div class="announce-b">B&E will share during their furlough in Hong Kong. Join us to support their mission work in Kenya, Africa.</div>
+        </div>
+      </div>
+      <div class="announce">
+        <div class="announce-n">4</div>
+        <div>
+          <div class="announce-t">Easter Camp 2026 — 3–6 April, YMCA Camp Manyung</div>
+          <div class="announce-b"><em>"Rise and Live for Jesus"</em> · Adults $350 · Students (6–16) $300 · Children (2–5) $150 · Under 2 free.<br><a href="https://forms.gle/vNzi7fo6ioEJVfyj9">Register here</a> (deadline 22 Feb, one form per person). Pay via bank — ref: CAMP + your full name — or cash to Hong Cheng. Fees due by 1 March.</div>
+        </div>
+      </div>
+      <div class="announce">
+        <div class="announce-n">5</div>
+        <div>
           <div class="announce-t">Travel Notice — April to June 2026</div>
-          <div class="announce-b">Planning to travel Apr–Jun? Email <a href="mailto:admin@cacv.org.au">admin@cacv.org.au</a> to notify the roster team.</div>
+          <div class="announce-b">Planning to travel Apr–Jun? Fill in the noticeboard form or email <a href="mailto:admin@cacv.org.au">admin@cacv.org.au</a>.</div>
         </div>
       </div>
     </div>
@@ -913,24 +855,25 @@
       <div>
         <div class="prayer-group-head">For the World</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>求神憐憫在戰爭和衝突中受苦的人，特別是以色列、巴勒斯坦、烏克蘭和俄羅斯。求 神終止暴力，建立和平與公義，讓福音的光照亮這些黑暗的地方。</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation.</div>
         </div>
       </div>
       <div>
         <div class="prayer-group-head">For Our International Workers</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Chris & Amy (Indonesia): God's protection, a fruitful mission trip, and children settling into home schooling.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Josh & Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top & Toe Season 1.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Thibaut & Naoual (France): open hearts among Afghan people, asylum seekers and international students.</div>
         </div>
       </div>
       <div>
         <div class="prayer-group-head">For Our Church</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Rentoul Hall: God's guidance and unity through the renovation process.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Easter Camp (3–6 April): hearts prepared to rise and live for Jesus.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Community Food Pantry: continued supply and committed volunteers.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Rentoul Hall: God's guidance and unity through the renovation.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Leaders' Retreat (7 March): wisdom and clarity for CACV's direction.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Easter Camp (3–6 April): hearts prepared to rise and live for Jesus.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Community Food Pantry: continued supply and committed volunteers.</div>
+          <div class="prayer-item"><div class="prayer-pip"></div>Youth, Livingstones, Worship Team, Children's Ministry, and Small Groups — growing in faith, community and love for God.</div>
         </div>
       </div>
     </div>
@@ -941,12 +884,12 @@
     <div class="card-label">Upcoming Roster</div>
     <div class="tbl-scroll">
       <table class="tbl">
-        <thead><tr><th>Date</th><th>Preacher</th><th>Chair</th><th>Worship</th><th>Music</th><th>PP</th><th>PA</th><th>Chief Usher</th><th>Ushers</th><th>Morning Tea</th></tr></thead>
+        <thead><tr><th>Date</th><th>Preacher</th><th>Chair</th><th>Worship / Music</th><th>PP & PA</th><th>Ushers</th></tr></thead>
         <tbody>
-          <tr><td>1 Mar 2026</td><td>Mr Tony Cheung</td><td>Eden Law</td><td>Catherine Au</td><td>Youth Band</td><td>Oscar Ng</td><td>Aaron Pho</td><td>Henry Ko, Christopher Au</td><td>Sophie Ng, Isaac Ma</td><td>Angela Li</td></tr>
-          <tr><td>8 Mar 2026</td><td>Mr Tony Cheung</td><td>Eden Law</td><td>Hong Cheng</td><td>Paktin So</td><td>Joshua Ho</td><td>Henry Ko</td><td>Alison Pho, Enoch Truong</td><td>Jeremy Man, Sandra Ho</td><td>Kitty So</td></tr>
-          <tr><td>15 Mar 2026</td><td>Testimony Sharing</td><td>Aaron Pho</td><td>Christopher Au</td><td>Youth Band</td><td>Conrad Kwok</td><td>Hong Cheng</td><td>Emily Au, Eden Law</td><td>Hubert Kwok, Samuel Lui</td><td>Alison Pho</td></tr>
-          <tr><td>22 Mar 2026</td><td>TBC</td><td>Eden Law</td><td>Connie G</td><td>Kristina Dew</td><td>Oscar Ng</td><td>Aaron Pho</td><td>Enoch Truong, Emerald Tsui</td><td>Angela Li, Sophie Ng</td><td>Christopher Au</td></tr>
+          <tr><td>1/3</td><td>Mr Tony Cheung</td><td>Eden Law</td><td>Catherine Au / Youth Band</td><td>A.Pho · O.Ng</td><td>H.Ko, C.Au, S.Ng, I.Ma</td></tr>
+          <tr><td>8/3</td><td>Mr Tony Cheung</td><td>Eden Law</td><td>Hong Cheng · Paktin So</td><td>H.Ko · J.Ho</td><td>A.Pho, E.Truong, J.Man, S.Ho</td></tr>
+          <tr><td>15/3</td><td>Testimony Sharing</td><td>Aaron Pho</td><td>Christopher Au / Youth</td><td>H.Cheng · C.Kwok</td><td>E.Au, E.Law, H.Kwok, S.Lui</td></tr>
+          <tr><td>22/3</td><td>TBC</td><td>Eden Law</td><td>C.Gutierrez · K.Dew</td><td>A.Pho · O.Ng</td><td>E.Truong, E.Tsui, A.Li, S.Ng</td></tr>
         </tbody>
       </table>
     </div>
@@ -959,10 +902,11 @@
       <table class="tbl">
         <thead><tr><th>Month</th><th>Day</th><th>Event</th><th>Responsible</th></tr></thead>
         <tbody>
+          <tr><td>February</td><td>22 Sun</td><td>Adult Sunday School</td><td>Eddie Chow</td></tr>
+          <tr><td></td><td>28 Sat</td><td>Adult Sunday School</td><td>Teresa Lam / Queenie Chan / Victor Cheung</td></tr>
           <tr><td>March</td><td>2 Mon</td><td>Evergreen Fellowship</td><td>Yiu He Kam</td></tr>
           <tr><td></td><td>5 Thu</td><td>Women's Group</td><td>Jessie Lam</td></tr>
           <tr><td></td><td>7 Sat</td><td>CACV Leaders' Retreat</td><td>Elders Board</td></tr>
-          <tr><td></td><td>3–6 Apr</td><td>Easter Camp 2026</td><td>Nelson Kwok / Hong Cheng / Aaron Pho</td></tr>
         </tbody>
       </table>
     </div>
@@ -972,9 +916,9 @@
   <div class="card" id="attendance">
     <div class="card-label">Last Week's Attendance</div>
     <div class="att-grid">
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">English Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Chinese Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Children's Service</div></div>
+      <div class="att-cell"><div class="att-n">43</div><div class="att-l">English Service</div></div>
+      <div class="att-cell"><div class="att-n">133</div><div class="att-l">Chinese Service</div></div>
+      <div class="att-cell"><div class="att-n">50</div><div class="att-l">Children's Service</div></div>
     </div>
   </div>
 
@@ -999,7 +943,7 @@
       </div>
       <div class="hope-cell">
         <div class="hope-letter">E</div>
-        <div><div class="hope-word">Empowered &amp; Equipped</div><div class="hope-desc">by the Holy Spirit for this task</div></div>
+        <div><div class="hope-word">Empowered & Equipped</div><div class="hope-desc">by the Holy Spirit for this task</div></div>
       </div>
     </div>
   </div>
@@ -1080,11 +1024,12 @@
 
     </div>
     <div class="footer-base">
-      <span>&copy; 2026 Christian Alliance Church of Victoria</span>
+      <span>© 2026 Christian Alliance Church of Victoria</span>
       <span>C&amp;MA Member Church</span>
     </div>
   </div>
 </footer>
+
 
 <script>
   // Highlight active nav button based on scroll position
@@ -1101,6 +1046,7 @@
       if (entry.isIntersecting) {
         Object.values(btns).forEach(b => b && b.classList.remove('active'));
         btn.classList.add('active');
+        // Scroll nav button into view
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
     });
@@ -1117,7 +1063,7 @@
       e.preventDefault();
       const target = document.querySelector(btn.getAttribute('href'));
       if (target) {
-        const offset = 56;
+        const offset = 56; // sticky nav height
         const top = target.getBoundingClientRect().top + window.scrollY - offset - 12;
         window.scrollTo({ top, behavior: 'smooth' });
       }
