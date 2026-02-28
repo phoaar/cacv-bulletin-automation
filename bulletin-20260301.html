@@ -357,7 +357,7 @@
   }
 
   /* ── ORDER OF SERVICE ── */
-  .order-list { list-style: none; }
+  .order-list { list-style: none !important; padding: 0 !important; margin: 0 !important; }
   .order-row {
     display: flex;
     align-items: center;
@@ -366,7 +366,9 @@
     border-radius: 9px;
     transition: background 0.15s;
     cursor: default;
+    list-style-type: none !important;
   }
+  .order-row::before { content: none !important; } /* Kill any CSS chevrons */
   .order-row:hover { background: var(--sand); }
   .order-idx {
     width: 26px; height: 26px;
@@ -764,7 +766,7 @@
     <strong>Translation warning — Admin only</strong><br>
     1 field could not be translated and may still contain Chinese text:
     <ul style="margin:6px 0 0;padding-left:18px;">
-      <li>pr_0_pt_1: 401 {&quot;type&quot;:&quot;error&quot;,&quot;error&quot;:{&quot;type&quot;:&quot;authentication_error&quot;,&quot;message&quot;:&quot;invalid x-api-key&quot;},&quot;request_id&quot;:&quot;req_011CYZtcT2nhhjym4bdXyN42&quot;}</li>
+      <li>pr_0_pt_1: 401 {&quot;type&quot;:&quot;error&quot;,&quot;error&quot;:{&quot;type&quot;:&quot;authentication_error&quot;,&quot;message&quot;:&quot;invalid x-api-key&quot;},&quot;request_id&quot;:&quot;req_011CYZxVoFjKHwVKNhBgDBz9&quot;}</li>
     </ul>
     Please check the bulletin before publishing and update the sheet manually if needed.
   </div>
@@ -798,9 +800,18 @@
   <div class="sermon-inner">
     <div>
       <div class="sermon-eyebrow">This Week's Message</div>
-      <div class="sermon-title"></div>
-      <div class="sermon-ref"></div>
-      
+      <div class="sermon-title">TEST SERMON</div>
+      <div class="sermon-ref">Genesis 1:1-15</div>
+      <div class="bible-btns">
+        <a class="bible-btn" href="https://www.biblegateway.com/passage/?search=Genesis%201%3A1-15&version=NIV" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h5.5a2 2 0 0 1 2 2v9l-1.5-1.5H2V3z"/><path d="M14 3H8.5a0 0 0 0 0 0 0v9l1.5-1.5H14V3z" stroke-opacity=".5"/></svg>
+          BibleGateway
+        </a>
+        <a class="bible-btn" href="https://www.bible.com/bible/111/GEN.1.1-15.NIV" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="1" width="10" height="14" rx="1.5"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>
+          YouVersion
+        </a>
+      </div>
     </div>
     <div class="preacher-tag">Mr Tony Cheung</div>
   </div>
@@ -854,8 +865,11 @@
       <li class="order-row"><div class="order-idx">2</div><span class="order-name">Worship</span></li>
       <li class="order-row"><div class="order-idx">3</div><span class="order-name">Offering</span></li>
       <li class="order-row"><div class="order-idx">4</div><span class="order-name">Welcoming</span></li>
-      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span></li>
-      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">—  Mr Tony Cheung</span></li>
+      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span><span class="order-sub">Genesis 1:1-15</span><span class="bible-btns-sm">
+        <a class="bible-btn-sm" href="https://www.biblegateway.com/passage/?search=Genesis%201%3A1-15&version=NIV" target="_blank" rel="noopener">BibleGateway</a>
+        <a class="bible-btn-sm" href="https://www.bible.com/bible/111/GEN.1.1-15.NIV" target="_blank" rel="noopener">YouVersion</a>
+      </span></li>
+      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">TEST SERMON  —  Mr Tony Cheung</span></li>
       <li class="order-row"><div class="order-idx">7</div><span class="order-name">Response Song</span></li>
       <li class="order-row"><div class="order-idx">8</div><span class="order-name">Intercession</span></li>
     </ul>
@@ -972,9 +986,9 @@
   <div class="card" id="attendance">
     <div class="card-label">Last Week's Attendance</div>
     <div class="att-grid">
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">English Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Chinese Service</div></div>
-      <div class="att-cell"><div class="att-n">—</div><div class="att-l">Children's Service</div></div>
+      <div class="att-cell"><div class="att-n">123</div><div class="att-l">English Service</div></div>
+      <div class="att-cell"><div class="att-n">123</div><div class="att-l">Chinese Service</div></div>
+      <div class="att-cell"><div class="att-n">13</div><div class="att-l">Children's Service</div></div>
     </div>
   </div>
 
