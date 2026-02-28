@@ -264,12 +264,20 @@ const SHARED_STYLES = `
   .empty { font-style: italic; color: #555; }
 
   /* ── PRAYER ── */
-  .prayer-section p {
+  .prayer-section-print {
     font-size: 9.5pt;
-    margin-bottom: 2mm;
     line-height: 1.4;
   }
-  .bullet { font-size: 8pt; }
+  .prayer-group-print {
+    margin-bottom: 3mm;
+  }
+  .prayer-point-print {
+    margin-left: 4mm;
+    margin-top: 1mm;
+    display: flex;
+    gap: 2mm;
+  }
+  .bullet { font-size: 8pt; flex-shrink: 0; }
 
   /* ── FOOTER ── */
   .print-footer {

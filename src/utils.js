@@ -202,8 +202,8 @@ function buildPrayerItems(prayer, isPrint = false) {
 
   if (isPrint) {
     return prayer.map(group => {
-      const points = group.points.map(p => `<span class="bullet">•</span> ${esc(p)}`).join(' ');
-      return `<p><strong>${esc(group.group)}:</strong> ${points}</p>`;
+      const points = group.points.map(p => `<div class="prayer-point-print"><span class="bullet">•</span> ${esc(p)}</div>`).join('\n');
+      return `<div class="prayer-group-print"><strong>${esc(group.group)}:</strong>\n${points}</div>`;
     }).join('\n');
   }
 
