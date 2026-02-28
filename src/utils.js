@@ -75,11 +75,24 @@ function youVersionUrl(reference) {
 }
 
 /**
+ * Extract the first URL found in a string.
+ */
+function extractUrl(text) {
+  if (!text) return null;
+  const match = text.match(/https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+/);
+  if (!match) return null;
+  let url = match[0];
+  const punctuationMatch = url.match(/[.,!?;:)]+$/);
+  if (punctuationMatch) {
+    url = url.slice(0, -punctuationMatch[0].length);
+  }
+  return url.startsWith('http') ? url : `https://${url}`;
+}
+
+/**
  * Auto-link URLs and email addresses in raw text.
  */
 function autoLink(rawText) {
-  // Pattern matches URLs or email addresses. 
-  // We use a capture group for the main part, then handle trailing punctuation manually.
   const pattern = /(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
   
   let result = '';
@@ -87,14 +100,11 @@ function autoLink(rawText) {
   let match;
 
   while ((match = pattern.exec(rawText)) !== null) {
-    // Add text before the match
     result += esc(rawText.slice(lastIndex, match.index));
     
     let url = match[1];
     let trailingPunctuation = '';
 
-    // Strip trailing punctuation that is likely part of the sentence, not the URL
-    // e.g., "Check this: https://google.com." -> Link should not include the "."
     const punctuationMatch = url.match(/[.,!?;:)]+$/);
     if (punctuationMatch) {
       trailingPunctuation = punctuationMatch[0];
@@ -109,9 +119,7 @@ function autoLink(rawText) {
       result += `<a href="https://${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a>`;
     }
 
-    // Add back the punctuation as raw escaped text
     result += esc(trailingPunctuation);
-    
     lastIndex = match.index + match[1].length;
   }
   
@@ -162,7 +170,11 @@ function buildAnnouncementItems(announcements, isPrint = false) {
   if (isPrint) {
     return '<ol>\n' + announcements.map(a => {
       const body = a.body ? `<span class="ann-body"> — ${autoLink(a.body)}</span>` : '';
-      return `  <li><strong>${esc(a.title)}</strong>${body}</li>`;
+      const qrHtml = (isPrint && a.qrSvg) 
+        ? `<div class="ann-qr">${a.qrSvg}</div>` 
+        : '';
+      const hasQrClass = (isPrint && a.qrSvg) ? ' class="has-qr"' : '';
+      return `  <li${hasQrClass}><strong>${esc(a.title)}</strong>${body}${qrHtml}</li>`;
     }).join('\n') + '\n</ol>';
   }
 
@@ -209,5 +221,6 @@ ${items}
 
 module.exports = { 
   esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
-  autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
+  autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems,
+  extractUrl
 };

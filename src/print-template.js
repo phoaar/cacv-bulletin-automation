@@ -243,6 +243,22 @@ const SHARED_STYLES = `
   .announce-list ol li {
     margin-bottom: 3mm;
     line-height: 1.4;
+    position: relative;
+  }
+  .announce-list ol li.has-qr {
+    padding-right: 18mm;
+    min-height: 16mm;
+  }
+  .ann-qr {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 15mm;
+    height: 15mm;
+  }
+  .ann-qr svg {
+    width: 100%;
+    height: 100%;
   }
   .ann-body { color: #222; }
   .empty { font-style: italic; color: #555; }

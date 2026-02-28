@@ -13,6 +13,7 @@ const { generateQrSvg }      = require('./qr');
 const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 const { canPublishWordPress, publishToWordPress } = require('./wordpress');
+const { extractUrl }         = require('./utils');
 
 // Official CACV Bulletin URL
 const LIVE_URL = process.env.LIVE_URL || 'https://cacv.org.au/cacv-english-bulletin/';
@@ -91,6 +92,15 @@ async function main() {
 
   // ── Build HTML ────────────────────────────────────────────────────────────
   console.log('Building HTML…');
+
+  // Generate QR codes for announcements (Print only)
+  for (const ann of data.announcements) {
+    const url = extractUrl(ann.body);
+    if (url) {
+      ann.qrSvg = await generateQrSvg(url).catch(() => null);
+    }
+  }
+
   const html = buildBulletin(data, failures);
 
   // ── Write output ──────────────────────────────────────────────────────────
