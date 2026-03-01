@@ -365,9 +365,18 @@ ${buildAnnouncementsPageHtml(data)}
 </div>
 
 <!-- ── PAGE 4: PRAYER ── -->
-<div>
+<div class="page">
 ${buildPrayerPageHtml(data)}
 </div>
+
+<!-- ── ATTACHMENTS (Embedded for Printing) ── -->
+${(data.pdfAttachments || []).map(att => `
+<div class="page attachment-page">
+  <div class="print-hint" style="background:#e8eff6; border-color:#8ba5c4; color:#5c82a8;">
+    📄 <strong>Attachment: ${esc(att.name)}</strong> (Visible below and included in PDF download)
+  </div>
+  <embed src="${esc(att.url)}" type="application/pdf" width="100%" height="1000px" style="border:1px solid #ccc; border-radius:8px;">
+</div>`).join('\n')}
 
 </body>
 </html>`;
@@ -461,6 +470,17 @@ ${buildOrderPageHtml(data)}
 ${buildAnnouncementsPageHtml(data)}
   </div>
 </div>
+
+<!-- ── ATTACHMENTS (Embedded for Printing) ── -->
+${(data.pdfAttachments || []).map(att => `
+<div class="sheet">
+  <div class="panel" style="width:100%; height:100%;">
+    <div class="print-hint" style="background:#e8eff6; border-color:#8ba5c4; color:#5c82a8;">
+      📄 <strong>Attachment: ${esc(att.name)}</strong>
+    </div>
+    <embed src="${esc(att.url)}" type="application/pdf" width="100%" height="90%" style="border:1px solid #ccc; border-radius:8px;">
+  </div>
+</div>`).join('\n')}
 
 </body>
 </html>`;
