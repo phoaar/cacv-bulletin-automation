@@ -86,12 +86,15 @@ function buildCoverPageHtml(data) {
       <div class="footer-head">Get in Touch</div>
       17 Livingstone Close<br>Burwood VIC 3125<br>
       PO Box 7091<br>Wattle Park 3128<br><br>
-            (03) 9888-7114<br>
-            cacv@cacv.org.au<br>
-            www.cacv.org.au
-            <div style="font-size: 6pt; opacity: 0.3; margin-top: 2mm;">${BUILD_VERSION}</div>
-          </div>
-        </div>`;
+      (03) 9888-7114<br>
+      cacv@cacv.org.au<br>
+      www.cacv.org.au
+      <div style="font-size: 6pt; opacity: 0.3; margin-top: 2mm;">${BUILD_VERSION}</div>
+    </div>
+  </div>`;
+}
+
+function buildOrderPageHtml(data) {
   const { service, order } = data;
   return `
   <div class="section">
