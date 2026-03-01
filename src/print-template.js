@@ -2,7 +2,7 @@
 
 const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems, fixDriveUrl } = require('./utils');
 
-const BUILD_VERSION = process.env.BUILD_VERSION || 'V4.9-PDF-DEPLOY-FIX';
+const BUILD_VERSION = process.env.BUILD_VERSION || 'V5.0-STABLE-PDF';
 
 function buildPrintOrder(order) {
   return buildOrderItems(order, true);

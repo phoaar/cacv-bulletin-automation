@@ -169,8 +169,10 @@ async function main() {
 
   // ── Finalise outputs for deployment ───────────────────────────────────────
   try {
-    fs.copyFileSync(htmlPath, path.join(outputDir, 'index.html'));
-    console.log('✓ Updated index.html');
+    if (fs.existsSync(outputPath)) {
+      fs.copyFileSync(outputPath, path.join(outputDir, 'index.html'));
+      console.log('✓ Updated index.html');
+    }
     
     const printHtmlPath = path.join(outputDir, `bulletin-print-${dateSlug}.html`);
     if (fs.existsSync(printHtmlPath)) {
