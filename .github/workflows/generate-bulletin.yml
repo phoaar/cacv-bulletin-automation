@@ -47,13 +47,8 @@ jobs:
           CHROME_PATH: /usr/bin/google-chrome-stable
         run: node src/index.js
 
-      - name: Prepare index.html and print.html for GitHub Pages
+      - name: Prepare assets for GitHub Pages
         run: |
-          cp output/bulletin-[0-9]*.html output/index.html
-          cp output/bulletin-print-[0-9]*.html output/print.html
-          # Use booklet as the primary bulletin.pdf, fallback to print if missing
-          cp output/bulletin-booklet-[0-9]*.pdf output/bulletin.pdf || cp output/bulletin-print-[0-9]*.pdf output/bulletin.pdf
-          cp output/bulletin-booklet-[0-9]*.pdf output/booklet.pdf || true
           cp -r assets output/assets
 
       - name: Deploy to GitHub Pages

@@ -110,7 +110,8 @@ async function mergePdfs(mainBuffer, attachmentBuffers) {
         const scaledWidth = width * scale;
         const scaledHeight = height * scale;
         
-        // Center the content
+        // Center the content on the A4 page
+        // In pdf-lib, (0,0) is BOTTOM-LEFT.
         const x = (A4_SIZE[0] - scaledWidth) / 2;
         const y = (A4_SIZE[1] - scaledHeight) / 2;
         

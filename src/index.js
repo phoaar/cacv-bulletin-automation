@@ -167,6 +167,25 @@ async function main() {
     console.warn(`Booklet PDF generation failed: ${err.message}`);
   }
 
+  // ── Finalise outputs for deployment ───────────────────────────────────────
+  try {
+    fs.copyFileSync(htmlPath, path.join(outputDir, 'index.html'));
+    console.log('✓ Updated index.html');
+    
+    const printHtmlPath = path.join(outputDir, `bulletin-print-${dateSlug}.html`);
+    if (fs.existsSync(printHtmlPath)) {
+      fs.copyFileSync(printHtmlPath, path.join(outputDir, 'print.html'));
+      console.log('✓ Updated print.html');
+    }
+
+    if (pdfPath && fs.existsSync(pdfPath)) {
+      fs.copyFileSync(pdfPath, path.join(outputDir, 'bulletin.pdf'));
+      console.log('✓ Updated bulletin.pdf');
+    }
+  } catch (err) {
+    console.warn(`Failed to finalise deployment files: ${err.message}`);
+  }
+
   // ── Send notifications ─────────────────────────────────────────────────────
   const to = data.notificationEmails || [];
   const serviceDate = data.service.date || 'Unknown date';
