@@ -51,6 +51,8 @@ jobs:
         run: |
           cp output/bulletin-[0-9]*.html output/index.html
           cp output/bulletin-print-[0-9]*.html output/print.html
+          cp output/bulletin-print-[0-9]*.pdf output/bulletin.pdf
+          cp output/bulletin-booklet-[0-9]*.pdf output/booklet.pdf
           cp -r assets output/assets
 
       - name: Deploy to GitHub Pages
