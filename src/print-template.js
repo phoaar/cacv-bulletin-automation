@@ -1,6 +1,6 @@
 'use strict';
 
-const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems } = require('./utils');
+const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems, fixDriveUrl } = require('./utils');
 
 const BUILD_VERSION = process.env.BUILD_VERSION || 'V4.7-BOOKLET-FIX';
 
@@ -375,7 +375,7 @@ ${(data.pdfAttachments || []).map(att => `
   <div class="print-hint" style="background:#e8eff6; border-color:#8ba5c4; color:#5c82a8;">
     📄 <strong>Attachment: ${esc(att.name)}</strong> (Visible below and included in PDF download)
   </div>
-  <embed src="${esc(att.url)}" type="application/pdf" width="100%" height="1000px" style="border:1px solid #ccc; border-radius:8px;">
+  <embed src="${fixDriveUrl(att.url)}" type="application/pdf" width="100%" height="1000px" style="border:1px solid #ccc; border-radius:8px;">
 </div>`).join('\n')}
 
 </body>
@@ -478,7 +478,7 @@ ${(data.pdfAttachments || []).map(att => `
     <div class="print-hint" style="background:#e8eff6; border-color:#8ba5c4; color:#5c82a8;">
       📄 <strong>Attachment: ${esc(att.name)}</strong>
     </div>
-    <embed src="${esc(att.url)}" type="application/pdf" width="100%" height="90%" style="border:1px solid #ccc; border-radius:8px;">
+    <embed src="${fixDriveUrl(att.url)}" type="application/pdf" width="100%" height="90%" style="border:1px solid #ccc; border-radius:8px;">
   </div>
 </div>`).join('\n')}
 

@@ -219,8 +219,21 @@ ${items}
   }).join('\n') + '\n    </div>';
 }
 
+/**
+ * Detects Google Drive URLs and converts them to a direct preview format
+ * suitable for embedding in an HTML <embed> tag.
+ */
+function fixDriveUrl(url) {
+  if (!url) return '';
+  const match = url.match(/[-\w]{25,}/);
+  if (match && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
+    return `https://drive.google.com/file/d/${match[0]}/preview`;
+  }
+  return url;
+}
+
 module.exports = { 
   esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems,
-  extractUrl
+  extractUrl, fixDriveUrl
 };
