@@ -75,16 +75,18 @@ async function generatePdf(htmlPath, pdfPath, opts = {}) {
 
 /**
  * Merge multiple PDF buffers into one using pdf-lib.
+ * Ensures all pages in the final document are standard A4 (595.28 x 841.89 points).
  * 
  * @param {Buffer} mainBuffer 
  * @param {Buffer} attachmentBuffers 
  * @returns {Promise<Buffer>}
  */
 async function mergePdfs(mainBuffer, attachmentBuffers) {
-  const { PDFDocument } = require('pdf-lib');
+  const { PDFDocument, PageSizes } = require('pdf-lib');
   
   const mainPdf = await PDFDocument.load(mainBuffer);
   const mergedPdf = await PDFDocument.create();
+  const A4_SIZE = PageSizes.A4; // [595.28, 841.89]
   
   // Add pages from main bulletin
   const mainPages = await mergedPdf.copyPages(mainPdf, mainPdf.getPageIndices());
@@ -93,8 +95,36 @@ async function mergePdfs(mainBuffer, attachmentBuffers) {
   // Add pages from attachments
   for (const buf of attachmentBuffers) {
     const attachmentPdf = await PDFDocument.load(buf);
-    const attachmentPages = await mergedPdf.copyPages(attachmentPdf, attachmentPdf.getPageIndices());
-    attachmentPages.forEach(page => mergedPdf.addPage(page));
+    const attachmentIndices = attachmentPdf.getPageIndices();
+    const copiedPages = await mergedPdf.copyPages(attachmentPdf, attachmentIndices);
+    
+    for (const page of copiedPages) {
+      const { width, height } = page.getSize();
+      
+      // If the page is not A4, create a new A4 page and embed the attachment page into it
+      if (Math.abs(width - A4_SIZE[0]) > 1 || Math.abs(height - A4_SIZE[1]) > 1) {
+        const newPage = mergedPdf.addPage(A4_SIZE);
+        
+        // Calculate scale to fit while preserving aspect ratio
+        const scale = Math.min(A4_SIZE[0] / width, A4_SIZE[1] / height);
+        const scaledWidth = width * scale;
+        const scaledHeight = height * scale;
+        
+        // Center the content
+        const x = (A4_SIZE[0] - scaledWidth) / 2;
+        const y = (A4_SIZE[1] - scaledHeight) / 2;
+        
+        const embeddedPage = await mergedPdf.embedPage(page);
+        newPage.drawPage(embeddedPage, {
+          x,
+          y,
+          width: scaledWidth,
+          height: scaledHeight,
+        });
+      } else {
+        mergedPdf.addPage(page);
+      }
+    }
   }
   
   const mergedPdfBytes = await mergedPdf.save();

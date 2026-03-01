@@ -143,10 +143,9 @@ async function main() {
     fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
 
     const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
-    const pdfGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath, { 
+    await generatePdf(path.resolve(printHtmlPath), printPdfPath, { 
       attachmentPaths: attachmentLocalPaths 
     });
-    if (pdfGenerated) pdfPath = printPdfPath;
   } catch (err) {
     console.warn(`Print PDF generation failed: ${err.message}`);
   }
@@ -159,10 +158,11 @@ async function main() {
     fs.writeFileSync(bookletHtmlPath, bookletHtml, 'utf8');
 
     const bookletPdfPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.pdf`);
-    await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { 
+    const bookletGenerated = await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { 
       landscape: true,
       attachmentPaths: attachmentLocalPaths
     });
+    if (bookletGenerated) pdfPath = bookletPdfPath;
   } catch (err) {
     console.warn(`Booklet PDF generation failed: ${err.message}`);
   }

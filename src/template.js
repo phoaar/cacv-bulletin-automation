@@ -5,7 +5,7 @@ const {
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
 } = require('./utils');
 
-const BUILD_VERSION = process.env.BUILD_VERSION || 'V4.7-BOOKLET-FIX';
+const BUILD_VERSION = process.env.BUILD_VERSION || 'V4.8-PDF-BOOKLET-FIX';
 
 /**
  * Build the Order of Service list items.
