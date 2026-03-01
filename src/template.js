@@ -5,6 +5,8 @@ const {
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
 } = require('./utils');
 
+const BUILD_VERSION = 'V4.6-ATTACH-FIX';
+
 /**
  * Build the Order of Service list items.
  */
@@ -1108,7 +1110,7 @@ ${buildEvents(events)}
     </div>
     <div class="footer-base">
       <span>&copy; 2026 Christian Alliance Church of Victoria</span>
-      <span style="opacity:0.5">V4.5-PDF-MULT</span>
+      <span style="opacity:0.5">${BUILD_VERSION}</span>
       <span>C&amp;MA Member Church</span>
     </div>
   </div>

@@ -2,6 +2,8 @@
 
 const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems } = require('./utils');
 
+const BUILD_VERSION = 'V4.6-ATTACH-FIX';
+
 function buildPrintOrder(order) {
   return buildOrderItems(order, true);
 }
@@ -84,14 +86,12 @@ function buildCoverPageHtml(data) {
       <div class="footer-head">Get in Touch</div>
       17 Livingstone Close<br>Burwood VIC 3125<br>
       PO Box 7091<br>Wattle Park 3128<br><br>
-      (03) 9888-7114<br>
-      cacv@cacv.org.au<br>
-      www.cacv.org.au
-    </div>
-  </div>`;
-}
-
-function buildOrderPageHtml(data) {
+            (03) 9888-7114<br>
+            cacv@cacv.org.au<br>
+            www.cacv.org.au
+            <div style="font-size: 6pt; opacity: 0.3; margin-top: 2mm;">${BUILD_VERSION}</div>
+          </div>
+        </div>`;
   const { service, order } = data;
   return `
   <div class="section">
