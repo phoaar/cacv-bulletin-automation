@@ -159,7 +159,10 @@ async function main() {
     fs.writeFileSync(bookletHtmlPath, bookletHtml, 'utf8');
 
     const bookletPdfPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.pdf`);
-    await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { landscape: true });
+    await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { 
+      landscape: true,
+      attachmentPaths: attachmentLocalPaths
+    });
   } catch (err) {
     console.warn(`Booklet PDF generation failed: ${err.message}`);
   }

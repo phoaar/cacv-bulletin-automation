@@ -49,18 +49,19 @@ async function generatePdf(htmlPath, pdfPath, opts = {}) {
     let finalBuffer = pdfBuffer;
 
     if (opts.attachmentPaths && opts.attachmentPaths.length > 0) {
-      console.log(`Merging ${opts.attachmentPaths.length} attachment(s)…`);
-      try {
-        const attachmentBuffers = opts.attachmentPaths
-          .filter(p => fs.existsSync(p))
-          .map(p => fs.readFileSync(p));
-          
-        if (attachmentBuffers.length > 0) {
+      const validPaths = opts.attachmentPaths.filter(p => fs.existsSync(p));
+      console.log(`Merging ${validPaths.length} valid attachment(s) (out of ${opts.attachmentPaths.length} requested)…`);
+      
+      if (validPaths.length > 0) {
+        try {
+          const attachmentBuffers = validPaths.map(p => fs.readFileSync(p));
           finalBuffer = await mergePdfs(pdfBuffer, attachmentBuffers);
-          console.log('PDFs merged successfully.');
+          console.log(`PDFs merged successfully. Final size: ${finalBuffer.length} bytes.`);
+        } catch (err) {
+          console.warn(`PDF merge failed: ${err.message}. Saving original bulletin only.`);
         }
-      } catch (err) {
-        console.warn(`PDF merge failed: ${err.message}. Saving original only.`);
+      } else {
+        console.log('No valid attachment files found on disk to merge.');
       }
     }
 
