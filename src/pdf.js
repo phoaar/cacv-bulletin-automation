@@ -55,7 +55,7 @@ async function generatePdf(htmlPath, pdfPath, opts = {}) {
       if (validPaths.length > 0) {
         try {
           const attachmentBuffers = validPaths.map(p => fs.readFileSync(p));
-          finalBuffer = await mergePdfs(pdfBuffer, attachmentBuffers);
+          finalBuffer = await mergePdfs(pdfBuffer, attachmentBuffers, { landscape: !!opts.landscape });
           console.log(`PDFs merged successfully. Final size: ${finalBuffer.length} bytes.`);
         } catch (err) {
           console.warn(`PDF merge failed: ${err.message}. Saving original bulletin only.`);
@@ -81,53 +81,76 @@ async function generatePdf(htmlPath, pdfPath, opts = {}) {
  * @param {Buffer} attachmentBuffers 
  * @returns {Promise<Buffer>}
  */
-async function mergePdfs(mainBuffer, attachmentBuffers) {
-  const { PDFDocument, PageSizes } = require('pdf-lib');
-  
+async function mergePdfs(mainBuffer, attachmentBuffers, opts = {}) {
+  const { PDFDocument, PageSizes, degrees } = require('pdf-lib');
+
   const mainPdf = await PDFDocument.load(mainBuffer);
   const mergedPdf = await PDFDocument.create();
-  const A4_SIZE = PageSizes.A4; // [595.28, 841.89]
-  
+
+  // Target page size matches the bulletin orientation.
+  // pdf-lib PageSizes.A4 = [595.28, 841.89] (portrait).
+  const A4_P = PageSizes.A4;                       // portrait  [595.28, 841.89]
+  const A4_L = [PageSizes.A4[1], PageSizes.A4[0]]; // landscape [841.89, 595.28]
+  const TARGET = opts.landscape ? A4_L : A4_P;
+
   // Add pages from main bulletin
   const mainPages = await mergedPdf.copyPages(mainPdf, mainPdf.getPageIndices());
   mainPages.forEach(page => mergedPdf.addPage(page));
-  
+
   // Add pages from attachments
   for (const buf of attachmentBuffers) {
     const attachmentPdf = await PDFDocument.load(buf);
     const attachmentIndices = attachmentPdf.getPageIndices();
     const copiedPages = await mergedPdf.copyPages(attachmentPdf, attachmentIndices);
-    
+
     for (const page of copiedPages) {
       const { width, height } = page.getSize();
-      
-      // If the page is not A4, create a new A4 page and embed the attachment page into it
-      if (Math.abs(width - A4_SIZE[0]) > 1 || Math.abs(height - A4_SIZE[1]) > 1) {
-        const newPage = mergedPdf.addPage(A4_SIZE);
-        
-        // Calculate scale to fit while preserving aspect ratio
-        const scale = Math.min(A4_SIZE[0] / width, A4_SIZE[1] / height);
-        const scaledWidth = width * scale;
-        const scaledHeight = height * scale;
-        
-        // Center the content on the A4 page
-        // In pdf-lib, (0,0) is BOTTOM-LEFT.
-        const x = (A4_SIZE[0] - scaledWidth) / 2;
-        const y = (A4_SIZE[1] - scaledHeight) / 2;
-        
-        const embeddedPage = await mergedPdf.embedPage(page);
-        newPage.drawPage(embeddedPage, {
-          x,
-          y,
-          width: scaledWidth,
-          height: scaledHeight,
-        });
-      } else {
+
+      // If the attachment page already matches the target size exactly, add it directly.
+      // Otherwise embed it (scaled to fit, centred) on a new page of the target size.
+      // This also handles portrait attachments appended to a landscape booklet — without
+      // this, portrait pages appear rotated and their top content (headers) is clipped.
+      const matchesTarget =
+        Math.abs(width  - TARGET[0]) <= 1 &&
+        Math.abs(height - TARGET[1]) <= 1;
+
+      if (matchesTarget) {
         mergedPdf.addPage(page);
+      } else {
+        const newPage = mergedPdf.addPage(TARGET);
+        const embeddedPage = await mergedPdf.embedPage(page);
+
+        // If the attachment is the same paper size but opposite orientation (e.g. portrait A4
+        // appended to a landscape A4 booklet), rotate 90° CCW to fill the page exactly.
+        // Otherwise scale to fit centred.
+        const fitsRotated =
+          Math.abs(width  - TARGET[1]) <= 1 &&
+          Math.abs(height - TARGET[0]) <= 1;
+
+        if (fitsRotated) {
+          // 90° CCW: portrait top → landscape left side (turn paper CW to read normally).
+          // In pdf-lib (origin = bottom-left), anchor at (TARGET[0], 0) after CCW rotation
+          // maps the portrait content exactly onto the landscape page.
+          newPage.drawPage(embeddedPage, {
+            x: TARGET[0],
+            y: 0,
+            width:  TARGET[1],
+            height: TARGET[0],
+            rotate: degrees(90),
+          });
+        } else {
+          // Scale to fit while preserving aspect ratio, centred.
+          const scale = Math.min(TARGET[0] / width, TARGET[1] / height);
+          const scaledWidth  = width  * scale;
+          const scaledHeight = height * scale;
+          const x = (TARGET[0] - scaledWidth)  / 2;
+          const y = (TARGET[1] - scaledHeight) / 2;
+          newPage.drawPage(embeddedPage, { x, y, width: scaledWidth, height: scaledHeight });
+        }
       }
     }
   }
-  
+
   const mergedPdfBytes = await mergedPdf.save();
   return Buffer.from(mergedPdfBytes);
 }
