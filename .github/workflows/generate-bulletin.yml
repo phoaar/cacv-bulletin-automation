@@ -28,8 +28,13 @@ jobs:
           mkdir -p credentials
           echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials/service-account.json
 
+      - name: Get Short SHA
+        id: vars
+        run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Generate bulletin HTML and PDF
         env:
+          BUILD_VERSION: "Build #${{ github.run_number }} (${{ env.SHORT_SHA }})"
           SHEET_ID: ${{ secrets.SHEET_ID }}
           CREDENTIALS_PATH: ./credentials/service-account.json
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

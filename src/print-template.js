@@ -2,7 +2,7 @@
 
 const { esc, getTeamRoles, autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems } = require('./utils');
 
-const BUILD_VERSION = 'V4.6-ATTACH-FIX';
+const BUILD_VERSION = process.env.BUILD_VERSION || 'V4.6-DEV';
 
 function buildPrintOrder(order) {
   return buildOrderItems(order, true);
