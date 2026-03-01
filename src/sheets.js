@@ -120,7 +120,7 @@ function toKV(rows) {
 async function fetchBulletinData(sheetId) {
   // Fetch all main tabs in one call
   const ranges = [
-    "'📋 Service Details'!A:B",
+    "'📋 Service Details'!A:C",
     "'🗓 Order of Service'!A:D",
     "'📢 Announcements'!A:E",
     "'🙏 Prayer Items'!A:C",
@@ -260,7 +260,17 @@ async function fetchBulletinData(sheetId) {
     adminEmail:        settings['Admin Email']            || 'admin@cacv.org.au',
   };
 
-  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo };
+  const pdfAttachments = detailRows
+    .filter(r => {
+      const label = (r[0] || '').trim().toLowerCase();
+      return (label === 'pdf attachment url' || label === 'pdf attachment') && (r[1] || '').trim();
+    })
+    .map(r => ({
+      url: (r[1] || '').trim(),
+      name: (r[2] || '').trim() || 'Document'
+    }));
+
+  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments };
 }
 
 async function updateRunStatus(sheetId, status) {

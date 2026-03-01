@@ -85,7 +85,11 @@ async function translateData(data) {
   }));
 
   return {
-    data: { ...data, announcements, prayer },
+    data: { 
+      ...data, 
+      announcements, 
+      prayer 
+    },
     failures,
   };
 }

@@ -1018,6 +1018,19 @@ ${buildEvents(events)}
     </div>
   </div>
 
+  ${(data.pdfAttachments && data.pdfAttachments.length > 0) ? `
+  <!-- ATTACHMENTS -->
+  <div class="card" id="attachments">
+    <div class="card-label">Attachments & Downloads</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+      ${data.pdfAttachments.map(att => `
+      <a href="${esc(att.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;background:var(--slate);color:#fff;text-decoration:none;padding:16px 20px;border-radius:12px;font-weight:600;transition:transform 0.15s, background 0.15s;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M4 14h8M8 2v9m0 0l-3-3m3 3l3-3"/></svg>
+        Download ${esc(att.name)}
+      </a>`).join('')}
+    </div>
+  </div>` : ''}
+
 </div>
 
 <footer>
@@ -1095,6 +1108,7 @@ ${buildEvents(events)}
     </div>
     <div class="footer-base">
       <span>&copy; 2026 Christian Alliance Church of Victoria</span>
+      <span style="opacity:0.5">V4.5-PDF-MULT</span>
       <span>C&amp;MA Member Church</span>
     </div>
   </div>

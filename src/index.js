@@ -63,6 +63,7 @@ async function main() {
 
   // ── Translate Chinese content ───────────────────────────────────────────────
   const { data, failures } = await translateData(rawData);
+  console.log(`Found ${data.pdfAttachments?.length || 0} PDF attachment(s).`);
 
   if (failures.length > 0) {
     console.warn(`\n⚠️  ${failures.length} translation(s) failed:`);
@@ -118,6 +119,23 @@ async function main() {
 
   // ── Generate print PDF ────────────────────────────────────────────────────
   let pdfPath = null;
+  const attachmentLocalPaths = [];
+  
+  if (data.pdfAttachments && data.pdfAttachments.length > 0) {
+    const { downloadFromDrive } = require('./pdf');
+    for (let i = 0; i < data.pdfAttachments.length; i++) {
+      const att = data.pdfAttachments[i];
+      try {
+        const localPath = path.join(outputDir, `attachment-${dateSlug}-${i}.pdf`);
+        console.log(`Downloading attachment [${att.name}] from: ${att.url}`);
+        await downloadFromDrive(att.url, localPath, credsPath);
+        attachmentLocalPaths.push(localPath);
+      } catch (err) {
+        console.warn(`Failed to download attachment [${att.name}]: ${err.message}`);
+      }
+    }
+  }
+
   try {
     console.log('Building print HTML…');
     const printHtml = buildPrintBulletin(data);
@@ -125,7 +143,9 @@ async function main() {
     fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
 
     const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
-    const pdfGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath);
+    const pdfGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath, { 
+      attachmentPaths: attachmentLocalPaths 
+    });
     if (pdfGenerated) pdfPath = printPdfPath;
   } catch (err) {
     console.warn(`Print PDF generation failed: ${err.message}`);
