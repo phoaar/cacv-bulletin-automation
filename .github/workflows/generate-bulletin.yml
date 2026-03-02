@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install qpdf
+        run: sudo apt-get install -y qpdf
+
       - name: Write service account credentials
         run: |
           mkdir -p credentials
@@ -44,6 +47,7 @@ jobs:
           WP_USERNAME: ${{ secrets.WP_USERNAME }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           WP_PAGE_ID: ${{ secrets.WP_PAGE_ID }}
+          PDF_PASSWORD: ${{ secrets.PDF_PASSWORD }}
           CHROME_PATH: /usr/bin/google-chrome-stable
         run: node src/index.js
 

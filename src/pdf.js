@@ -200,4 +200,28 @@ async function downloadFromDrive(url, destPath, credPath) {
   fs.writeFileSync(destPath, Buffer.from(arrayBuffer));
 }
 
-module.exports = { generatePdf, mergePdfs, downloadFile, downloadFromDrive };
+/**
+ * Password-protect a PDF in-place using qpdf.
+ * Requires qpdf to be installed (brew install qpdf / apt-get install qpdf).
+ * Throws if qpdf is not available or fails.
+ *
+ * @param {string} pdfPath  Absolute path to the PDF to protect (modified in place)
+ * @param {string} password Password to set on the PDF
+ */
+function protectPdf(pdfPath, password) {
+  const { execSync } = require('child_process');
+  const tmpPath = pdfPath + '.protected.tmp';
+  try {
+    execSync(
+      `qpdf --encrypt "${password}" "${password}" 256 -- "${pdfPath}" "${tmpPath}"`,
+      { stdio: 'pipe' }
+    );
+    fs.renameSync(tmpPath, pdfPath);
+    console.log(`PDF password-protected: ${path.basename(pdfPath)}`);
+  } catch (err) {
+    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+    throw new Error(`qpdf protection failed — is qpdf installed? ${err.message}`);
+  }
+}
+
+module.exports = { generatePdf, mergePdfs, downloadFile, downloadFromDrive, protectPdf };

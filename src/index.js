@@ -8,7 +8,7 @@ const { fetchBulletinData, updateRunStatus }  = require('./sheets');
 const { translateData }      = require('./translate');
 const { buildBulletin }      = require('./template');
 const { buildPrintBulletin, buildBookletBulletin } = require('./print-template');
-const { generatePdf }        = require('./pdf');
+const { generatePdf, protectPdf } = require('./pdf');
 const { generateQrSvg }      = require('./qr');
 const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
@@ -143,9 +143,16 @@ async function main() {
     fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
 
     const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
-    await generatePdf(path.resolve(printHtmlPath), printPdfPath, {
+    const printGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath, {
       attachmentPaths: attachmentLocalPaths
     });
+    if (printGenerated && process.env.PDF_PASSWORD) {
+      try {
+        protectPdf(printPdfPath, process.env.PDF_PASSWORD);
+      } catch (err) {
+        console.warn(`Print PDF protection skipped: ${err.message}`);
+      }
+    }
   } catch (err) {
     console.warn(`Print PDF generation failed: ${err.message}`);
     allIssues.push(`Print PDF generation failed: ${err.message}`);
@@ -163,7 +170,16 @@ async function main() {
       landscape: true,
       attachmentPaths: attachmentLocalPaths
     });
-    if (bookletGenerated) pdfPath = bookletPdfPath;
+    if (bookletGenerated) {
+      pdfPath = bookletPdfPath;
+      if (process.env.PDF_PASSWORD) {
+        try {
+          protectPdf(bookletPdfPath, process.env.PDF_PASSWORD);
+        } catch (err) {
+          console.warn(`Booklet PDF protection skipped: ${err.message}`);
+        }
+      }
+    }
   } catch (err) {
     console.warn(`Booklet PDF generation failed: ${err.message}`);
     allIssues.push(`Booklet PDF generation failed: ${err.message}`);
@@ -190,15 +206,28 @@ async function main() {
     console.warn(`Failed to finalise deployment files: ${err.message}`);
   }
 
-  // ── Send notifications ─────────────────────────────────────────────────────
   const to = data.notificationEmails || [];
   const serviceDate = data.service.date || 'Unknown date';
 
+  // ── Publish to WordPress ───────────────────────────────────────────────────
+  let wpPublished = false;
+  if (canPublishWordPress()) {
+    console.log('Publishing to WordPress…');
+    wpPublished = await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
+    if (!wpPublished) {
+      allIssues.push('WordPress publish failed — bulletin may not be live on the CACV website');
+    }
+  } else {
+    console.log('WordPress publish skipped (WP_URL / WP_USERNAME / WP_APP_PASSWORD / WP_PAGE_ID not configured).');
+  }
+
+  // ── Send notifications ─────────────────────────────────────────────────────
   if (canSendEmail()) {
     if (allIssues.length > 0) {
       console.log('Sending failure notification…');
       await notifyFailures({ to, serviceDate, liveUrl: LIVE_URL, issues: allIssues });
     } else {
+      // Only notify success once WordPress has confirmed the page is live
       console.log('Sending success notification…');
       await notifySuccess({ to, serviceDate, liveUrl: LIVE_URL, pdfPath });
     }
@@ -206,19 +235,11 @@ async function main() {
     console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
   }
 
-  // ── Publish to WordPress ───────────────────────────────────────────────────
-  if (canPublishWordPress()) {
-    console.log('Publishing to WordPress…');
-    await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
-  } else {
-    console.log('WordPress publish skipped (WP_URL / WP_USERNAME / WP_APP_PASSWORD / WP_PAGE_ID not configured).');
-  }
-
   // ── Update sheet status ────────────────────────────────────────────────────
   const runStatus = allIssues.length === 0
-    ? '✓ Success'
+    ? '✓ Live'
     : `⚠️ Issues (${allIssues.length})`;
-  await updateRunStatus(sheetId, runStatus);
+  await updateRunStatus(sheetId, runStatus, allIssues);
 }
 
 /**
