@@ -146,9 +146,10 @@ async function main() {
     const printGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath, {
       attachmentPaths: attachmentLocalPaths
     });
-    if (printGenerated && process.env.PDF_PASSWORD) {
+    const pdfPassword = data.pdfPassword || process.env.PDF_PASSWORD;
+    if (printGenerated && pdfPassword) {
       try {
-        protectPdf(printPdfPath, process.env.PDF_PASSWORD);
+        protectPdf(printPdfPath, pdfPassword);
       } catch (err) {
         console.warn(`Print PDF protection skipped: ${err.message}`);
       }
@@ -172,9 +173,10 @@ async function main() {
     });
     if (bookletGenerated) {
       pdfPath = bookletPdfPath;
-      if (process.env.PDF_PASSWORD) {
+      const pdfPassword = data.pdfPassword || process.env.PDF_PASSWORD;
+      if (pdfPassword) {
         try {
-          protectPdf(bookletPdfPath, process.env.PDF_PASSWORD);
+          protectPdf(bookletPdfPath, pdfPassword);
         } catch (err) {
           console.warn(`Booklet PDF protection skipped: ${err.message}`);
         }

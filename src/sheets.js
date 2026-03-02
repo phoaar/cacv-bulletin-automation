@@ -277,26 +277,30 @@ async function fetchBulletinData(sheetId) {
     }),
   };
 
-  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments, theme };
+  const pdfPassword = (settings['PDF Password'] || '').trim();
+
+  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments, theme, pdfPassword };
 }
 
-async function updateRunStatus(sheetId, status) {
+async function updateRunStatus(sheetId, status, errors = []) {
   const token = await getAccessToken(process.env.CREDENTIALS_PATH, SCOPES);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/'⚙️  Settings'!A:A`;
-  
+
   const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
   const data = await res.json();
   const rows = data.values || [];
 
   let statusRowNum = null;
   let timeRowNum   = null;
+  let errorsRowNum = null;
   rows.forEach((row, idx) => {
     const label = (row[0] || '').trim();
     if (label === 'Last Run Status') statusRowNum = idx + 1;
     if (label === 'Last Run Time')   timeRowNum   = idx + 1;
+    if (label === 'Last Run Errors') errorsRowNum = idx + 1;
   });
 
-  if (!statusRowNum && !timeRowNum) return;
+  if (!statusRowNum && !timeRowNum && !errorsRowNum) return;
 
   const timestamp = new Date().toLocaleString('en-AU', {
     timeZone: 'Australia/Melbourne',
@@ -307,6 +311,10 @@ async function updateRunStatus(sheetId, status) {
   const updates = [];
   if (statusRowNum) updates.push({ range: `⚙️  Settings!B${statusRowNum}`, values: [[status]] });
   if (timeRowNum)   updates.push({ range: `⚙️  Settings!B${timeRowNum}`,   values: [[timestamp]] });
+  if (errorsRowNum) {
+    const errorText = errors.length > 0 ? errors.map(e => `• ${e}`).join('\n') : '—';
+    updates.push({ range: `⚙️  Settings!B${errorsRowNum}`, values: [[errorText]] });
+  }
 
   await batchUpdate(sheetId, updates);
   console.log(`Sheet status updated: ${status} at ${timestamp}`);
