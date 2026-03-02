@@ -229,7 +229,7 @@ function triggerGitHubWorkflow() {
     muteHttpExceptions: true,
   });
 
-  return response.getResponseCode() === 204;
+  return response.getResponseCode() < 400;
 }
 
 // ── GENERATE NOW ─────────────────────────────────────────────────────────────

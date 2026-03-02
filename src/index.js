@@ -13,7 +13,7 @@ const { generateQrSvg }      = require('./qr');
 const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 const { canPublishWordPress, publishToWordPress } = require('./wordpress');
-const { extractUrl }         = require('./utils');
+const { extractUrl, parseServiceDate } = require('./utils');
 
 // Official CACV Bulletin URL
 const LIVE_URL = process.env.LIVE_URL || 'https://cacv.org.au/cacv-english-bulletin/';
@@ -143,11 +143,12 @@ async function main() {
     fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
 
     const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
-    await generatePdf(path.resolve(printHtmlPath), printPdfPath, { 
-      attachmentPaths: attachmentLocalPaths 
+    await generatePdf(path.resolve(printHtmlPath), printPdfPath, {
+      attachmentPaths: attachmentLocalPaths
     });
   } catch (err) {
     console.warn(`Print PDF generation failed: ${err.message}`);
+    allIssues.push(`Print PDF generation failed: ${err.message}`);
   }
 
   // ── Generate booklet PDF (2-up A4 landscape) ──────────────────────────────
@@ -158,13 +159,14 @@ async function main() {
     fs.writeFileSync(bookletHtmlPath, bookletHtml, 'utf8');
 
     const bookletPdfPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.pdf`);
-    const bookletGenerated = await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, { 
+    const bookletGenerated = await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, {
       landscape: true,
       attachmentPaths: attachmentLocalPaths
     });
     if (bookletGenerated) pdfPath = bookletPdfPath;
   } catch (err) {
     console.warn(`Booklet PDF generation failed: ${err.message}`);
+    allIssues.push(`Booklet PDF generation failed: ${err.message}`);
   }
 
   // ── Finalise outputs for deployment ───────────────────────────────────────
@@ -221,36 +223,14 @@ async function main() {
 
 /**
  * Convert a human-readable date string to a YYYYMMDD slug for filenames.
- * Handles formats like "22nd February 2026" or "22 Feb 2026" or "2026-02-22".
- * Falls back to the raw string (spaces replaced with dashes) if parsing fails.
+ * Falls back to the sanitised raw string if parsing fails.
  */
 function slugifyDate(dateStr) {
   if (!dateStr) return 'undated';
-
-  // Try ISO format first
-  const isoMatch = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) return `${isoMatch[1]}${isoMatch[2]}${isoMatch[3]}`;
-
-  // Try "22nd February 2026" / "22 Feb 2026"
-  const months = {
-    january:1,february:2,march:3,april:4,may:5,june:6,
-    july:7,august:8,september:9,october:10,november:11,december:12,
-    jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
-  };
-  const parts = dateStr.replace(/(\d+)(st|nd|rd|th)/i,'$1').split(/[\s,]+/);
-  let day, month, year;
-  for (const part of parts) {
-    const num = parseInt(part, 10);
-    const key = part.toLowerCase();
-    if (!isNaN(num) && num > 31) year = num;
-    else if (!isNaN(num) && num >= 1 && num <= 31 && !day) day = num;
-    else if (months[key]) month = months[key];
+  const d = parseServiceDate(dateStr);
+  if (d) {
+    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
   }
-  if (day && month && year) {
-    return `${year}${String(month).padStart(2,'0')}${String(day).padStart(2,'0')}`;
-  }
-
-  // Fallback: sanitise raw string
   return dateStr.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16) || 'undated';
 }
 

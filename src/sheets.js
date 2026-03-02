@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { getAccessToken } = require('./google-auth');
+const { parseServiceDate } = require('./utils');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
@@ -70,28 +71,6 @@ function formatRosterDate(val) {
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-function parseServiceDate(dateStr) {
-  if (!dateStr) return null;
-  const months = {
-    january:0,february:1,march:2,april:3,may:4,june:5,
-    july:6,august:7,september:8,october:9,november:10,december:11,
-    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-  };
-  const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/i, '$1');
-  const parts = cleaned.split(/[\s,/\-]+/);
-  let day, month, year;
-  for (const p of parts) {
-    const num = parseInt(p, 10);
-    const key = p.toLowerCase();
-    if (!isNaN(num) && num > 31)                             year  = num;
-    else if (!isNaN(num) && num >= 1 && num <= 31 && !day)  day   = num;
-    else if (months[key] !== undefined)                      month = months[key];
-  }
-  if (day !== undefined && month !== undefined && year !== undefined) {
-    return new Date(year, month, day);
-  }
-  return null;
-}
 
 function parseEventDate(monthStr, dayStr, yearStr, fallbackYear) {
   const months = {
@@ -195,17 +174,26 @@ async function fetchBulletinData(sheetId) {
   }
   const prayer = prayerOrder.map(g => ({ group: g, points: prayerMap[g] }));
 
-  const todayUtcMs = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  // Use local midnight so both numeric (sheetsSerialToDate) and text (parseServiceDate)
+  // date paths are compared against the same reference — both return local-time dates.
+  const _now = new Date();
+  const todayMs = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate()).getTime();
   const roster = rosterRows
     .slice(4)
     .filter(r => {
       if (!r[2] || !String(r[2]).trim()) return false;
-      if (typeof r[0] === 'number') return sheetsSerialToDate(r[0]).getTime() >= todayUtcMs;
+      if (typeof r[0] === 'number') {
+        // sheetsSerialToDate returns a UTC midnight Date; reinterpret as local date
+        // by using its UTC y/m/d components to construct a local midnight.
+        const d = sheetsSerialToDate(r[0]);
+        const localMs = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
+        return localMs >= todayMs;
+      }
       const dateStr = String(r[0] || '').trim();
       const year    = String(r[1] || '').trim();
       if (dateStr && year) {
         const parsed = parseServiceDate(`${dateStr} ${year}`);
-        if (parsed) return parsed.getTime() >= todayUtcMs;
+        if (parsed) return parsed.getTime() >= todayMs;
       }
       return !!dateStr;
     })
@@ -270,7 +258,26 @@ async function fetchBulletinData(sheetId) {
       name: (r[2] || '').trim() || 'Document'
     }));
 
-  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments };
+  // Theme cells are stored as "Letter | Word | Description" in Settings rows
+  // "Theme Cell 1" through "Theme Cell 4". Falls back to current CACV defaults.
+  const defaultThemeCells = [
+    { letter: 'H', word: 'Healthy Relationships',       desc: 'with God and with others' },
+    { letter: 'O', word: 'On Mission',                  desc: 'Everyone, everywhere, all the time' },
+    { letter: 'P', word: 'People of Prayer and Praise', desc: '' },
+    { letter: 'E', word: 'Empowered & Equipped',        desc: 'by the Holy Spirit for this task' },
+  ];
+  const theme = {
+    year:  settings['Theme Year']  || new Date().getFullYear().toString(),
+    title: settings['Theme Title'] || 'Proclaim HOPE',
+    cells: [1, 2, 3, 4].map((i, idx) => {
+      const raw = (settings[`Theme Cell ${i}`] || '').trim();
+      if (!raw) return defaultThemeCells[idx];
+      const parts = raw.split('|').map(s => s.trim());
+      return { letter: parts[0] || '', word: parts[1] || '', desc: parts[2] || '' };
+    }),
+  };
+
+  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments, theme };
 }
 
 async function updateRunStatus(sheetId, status) {

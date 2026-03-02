@@ -64,8 +64,25 @@ function buildEvents(events) {
 /**
  * Build the full bulletin HTML from the structured data object.
  */
+function buildThemeCard(theme) {
+  const cells = (theme.cells || []).map(c => `
+      <div class="hope-cell">
+        <div class="hope-letter">${esc(c.letter)}</div>
+        <div><div class="hope-word">${esc(c.word)}</div><div class="hope-desc">${esc(c.desc)}</div></div>
+      </div>`).join('');
+  return `
+  <div class="hope-card" id="theme">
+    <div class="hope-header">
+      <div class="hope-eyebrow">Church Theme ${esc(theme.year)}</div>
+      <div class="hope-title">${esc(theme.title).replace(/\b([A-Z]{2,})\b/g, '<em>$1</em>')}</div>
+    </div>
+    <div class="hope-grid">${cells}
+    </div>
+  </div>`;
+}
+
 function buildBulletin(data, failures) {
-  const { service, order, announcements, prayer, roster, events } = data;
+  const { service, order, announcements, prayer, roster, events, theme } = data;
 
   const engAtt  = service.attendanceEng   || '—';
   const chiAtt  = service.attendanceChi   || '—';
@@ -994,31 +1011,8 @@ ${buildEvents(events)}
     </div>
   </div>
 
-  <!-- HOPE THEME -->
-  <div class="hope-card" id="theme">
-    <div class="hope-header">
-      <div class="hope-eyebrow">Church Theme 2026</div>
-      <div class="hope-title">Proclaim <em>HOPE</em></div>
-    </div>
-    <div class="hope-grid">
-      <div class="hope-cell">
-        <div class="hope-letter">H</div>
-        <div><div class="hope-word">Healthy Relationships</div><div class="hope-desc">with God and with others</div></div>
-      </div>
-      <div class="hope-cell">
-        <div class="hope-letter">O</div>
-        <div><div class="hope-word">On Mission</div><div class="hope-desc">Everyone, everywhere, all the time</div></div>
-      </div>
-      <div class="hope-cell">
-        <div class="hope-letter">P</div>
-        <div><div class="hope-word">People of Prayer and Praise</div><div class="hope-desc"></div></div>
-      </div>
-      <div class="hope-cell">
-        <div class="hope-letter">E</div>
-        <div><div class="hope-word">Empowered &amp; Equipped</div><div class="hope-desc">by the Holy Spirit for this task</div></div>
-      </div>
-    </div>
-  </div>
+  <!-- CHURCH THEME -->
+  ${buildThemeCard(theme)}
 
   ${(data.pdfAttachments && data.pdfAttachments.length > 0) ? `
   <!-- ATTACHMENTS -->

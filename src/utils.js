@@ -232,8 +232,36 @@ function fixDriveUrl(url) {
   return url;
 }
 
-module.exports = { 
-  esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
+/**
+ * Parse a human-readable date string into a local-midnight Date object.
+ * Handles formats like "22nd February 2026", "22 Feb 2026", "16 Mar 2026",
+ * "Sunday, 1 March 2026". Returns null if parsing fails.
+ */
+function parseServiceDate(dateStr) {
+  if (!dateStr) return null;
+  const months = {
+    january:0,february:1,march:2,april:3,may:4,june:5,
+    july:6,august:7,september:8,october:9,november:10,december:11,
+    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+  };
+  const cleaned = String(dateStr).replace(/(\d+)(st|nd|rd|th)/i, '$1');
+  const parts   = cleaned.split(/[\s,/\-]+/);
+  let day, month, year;
+  for (const p of parts) {
+    const num = parseInt(p, 10);
+    const key = p.toLowerCase();
+    if (!isNaN(num) && num > 31)                            year  = num;
+    else if (!isNaN(num) && num >= 1 && num <= 31 && !day) day   = num;
+    else if (months[key] !== undefined)                     month = months[key];
+  }
+  if (day !== undefined && month !== undefined && year !== undefined) {
+    return new Date(year, month, day);
+  }
+  return null;
+}
+
+module.exports = {
+  esc, getTeamRoles, bibleGatewayUrl, youVersionUrl,
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems,
-  extractUrl, fixDriveUrl
+  extractUrl, fixDriveUrl, parseServiceDate
 };

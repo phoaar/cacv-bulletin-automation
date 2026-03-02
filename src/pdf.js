@@ -111,8 +111,8 @@ async function mergePdfs(mainBuffer, attachmentBuffers, opts = {}) {
       // This also handles portrait attachments appended to a landscape booklet — without
       // this, portrait pages appear rotated and their top content (headers) is clipped.
       const matchesTarget =
-        Math.abs(width  - TARGET[0]) <= 1 &&
-        Math.abs(height - TARGET[1]) <= 1;
+        Math.abs(width  - TARGET[0]) <= 5 &&
+        Math.abs(height - TARGET[1]) <= 5;
 
       if (matchesTarget) {
         mergedPdf.addPage(page);
@@ -124,8 +124,8 @@ async function mergePdfs(mainBuffer, attachmentBuffers, opts = {}) {
         // appended to a landscape A4 booklet), rotate 90° CCW to fill the page exactly.
         // Otherwise scale to fit centred.
         const fitsRotated =
-          Math.abs(width  - TARGET[1]) <= 1 &&
-          Math.abs(height - TARGET[0]) <= 1;
+          Math.abs(width  - TARGET[1]) <= 5 &&
+          Math.abs(height - TARGET[0]) <= 5;
 
         if (fitsRotated) {
           // 90° CCW: portrait top → landscape left side (turn paper CW to read normally).

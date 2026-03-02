@@ -2,6 +2,7 @@
 
 const https = require('https');
 const http  = require('http');
+const { parseServiceDate } = require('./utils');
 
 /**
  * Validate required bulletin fields and return a list of human-readable issues.
@@ -51,30 +52,12 @@ function validateBulletin(data) {
 
 /**
  * Normalise a human-readable date string to a YYYYMMDD numeric key for comparison.
- * Handles formats like "22nd February 2026", "22 Feb 2026", "16 Mar 2026".
  * Returns null if parsing fails.
  */
 function dateToKey(dateStr) {
-  if (!dateStr) return null;
-  const months = {
-    january:1,february:2,march:3,april:4,may:5,june:6,
-    july:7,august:8,september:9,october:10,november:11,december:12,
-    jan:1,feb:2,mar:3,apr:4,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
-  };
-  const cleaned = String(dateStr).replace(/(\d+)(st|nd|rd|th)/i, '$1');
-  const parts   = cleaned.split(/[\s,/\-]+/);
-  let day, month, year;
-  for (const p of parts) {
-    const num = parseInt(p, 10);
-    const key = p.toLowerCase();
-    if (!isNaN(num) && num > 31)                           year  = num;
-    else if (!isNaN(num) && num >= 1 && num <= 31 && !day) day   = num;
-    else if (months[key] !== undefined)                    month = months[key];
-  }
-  if (day !== undefined && month !== undefined && year !== undefined) {
-    return year * 10000 + month * 100 + day;
-  }
-  return null;
+  const d = parseServiceDate(dateStr);
+  if (!d) return null;
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
 /**
@@ -128,17 +111,25 @@ function checkUrl(url, redirectsLeft = 3) {
  * Returns a list of human-readable issues for broken links.
  */
 async function validateLinks(announcements) {
-  const issues = [];
-  if (!announcements || announcements.length === 0) return issues;
+  if (!announcements || announcements.length === 0) return [];
 
+  // Collect all unique URLs with their announcement title for reporting
+  const checks = [];
   for (const ann of announcements) {
     const text = `${ann.title || ''} ${ann.body || ''}`;
     const urls = [...new Set(text.match(URL_RE) || [])];
     for (const url of urls) {
-      const ok = await checkUrl(url);
-      if (!ok) issues.push(`Broken link in "${ann.title}": ${url}`);
+      checks.push({ url, title: ann.title });
     }
   }
+
+  const results = await Promise.allSettled(checks.map(c => checkUrl(c.url)));
+
+  const issues = [];
+  results.forEach((result, i) => {
+    const ok = result.status === 'fulfilled' && result.value === true;
+    if (!ok) issues.push(`Broken link in "${checks[i].title}": ${checks[i].url}`);
+  });
   return issues;
 }
 

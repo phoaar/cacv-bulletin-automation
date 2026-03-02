@@ -4,11 +4,21 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+// In-memory token cache: key → { token, expiresAt }
+const tokenCache = new Map();
+
 /**
  * Generate a Google Access Token using a Service Account JSON file.
+ * Tokens are cached for their lifetime (minus a 60s buffer) to avoid
+ * unnecessary round-trips to the Google token endpoint.
  * This replaces the heavy google-auth-library.
  */
 async function getAccessToken(credPath, scopes) {
+  const cacheKey = `${path.resolve(credPath)}::${[...scopes].sort().join(',')}`;
+  const cached = tokenCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.token;
+  }
   const creds = JSON.parse(fs.readFileSync(path.resolve(credPath), 'utf8'));
   
   const header = {
@@ -47,7 +57,11 @@ async function getAccessToken(credPath, scopes) {
 
   const data = await res.json();
   if (!res.ok) throw new Error(`Google Auth Failed: ${data.error_description || data.error}`);
-  
+
+  // Cache for the token's lifetime minus 60s buffer
+  const ttl = (data.expires_in || 3600) - 60;
+  tokenCache.set(cacheKey, { token: data.access_token, expiresAt: Date.now() + ttl * 1000 });
+
   return data.access_token;
 }
 
