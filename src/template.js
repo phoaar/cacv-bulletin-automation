@@ -948,35 +948,35 @@ ${failures && failures.length > 0 ? `
 <div class="page">
 
   <!-- ORDER OF SERVICE -->
-  <div class="card" id="order">
+  <section class="card" id="order">
     <div class="card-label">Order of Service</div>
     <ul class="order-list">
 ${buildOrder(order)}
     </ul>
-  </div>
+  </section>
 
   <!-- SERVICE TEAM -->
-  <div class="card" id="team">
+  <section class="card" id="team">
     <div class="card-label">Service Team</div>
     <div class="team-grid">
 ${buildTeam(service)}
     </div>
-  </div>
+  </section>
 
   <!-- ANNOUNCEMENTS -->
-  <div class="card" id="announcements">
+  <section class="card" id="announcements">
     <div class="card-label">Announcements</div>
     ${buildAnnouncements(announcements)}
-  </div>
+  </section>
 
   <!-- PRAYER -->
-  <div class="card" id="prayer">
+  <section class="card" id="prayer">
     <div class="card-label">Prayer Items</div>
     ${buildPrayer(prayer)}
-  </div>
+  </section>
 
   <!-- ROSTER -->
-  <div class="card" id="roster">
+  <section class="card" id="roster">
     <div class="card-label">Upcoming Roster</div>
     <div class="tbl-scroll">
       <table class="tbl">
@@ -986,10 +986,10 @@ ${buildRoster(roster)}
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 
   <!-- EVENTS -->
-  <div class="card" id="events">
+  <section class="card" id="events">
     <div class="card-label">Upcoming Events</div>
     <div class="tbl-scroll">
       <table class="tbl">
@@ -999,24 +999,24 @@ ${buildEvents(events)}
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 
   <!-- ATTENDANCE -->
-  <div class="card" id="attendance">
+  <section class="card" id="attendance">
     <div class="card-label">Last Week's Attendance</div>
     <div class="att-grid">
       <div class="att-cell"><div class="att-n">${esc(engAtt)}</div><div class="att-l">English Service</div></div>
       <div class="att-cell"><div class="att-n">${esc(chiAtt)}</div><div class="att-l">Chinese Service</div></div>
       <div class="att-cell"><div class="att-n">${esc(kidsAtt)}</div><div class="att-l">Children's Service</div></div>
     </div>
-  </div>
+  </section>
 
   <!-- CHURCH THEME -->
   ${buildThemeCard(theme)}
 
   ${(data.pdfAttachments && data.pdfAttachments.length > 0) ? `
   <!-- ATTACHMENTS -->
-  <div class="card" id="attachments">
+  <section class="card" id="attachments">
     <div class="card-label">Attachments & Downloads</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
       ${data.pdfAttachments.map(att => `
@@ -1025,7 +1025,7 @@ ${buildEvents(events)}
         Download ${esc(att.name)}
       </a>`).join('')}
     </div>
-  </div>` : ''}
+  </section>` : ''}
 
 </div>
 

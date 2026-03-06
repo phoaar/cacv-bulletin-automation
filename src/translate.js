@@ -28,7 +28,7 @@ async function translateData(data) {
     for (let i = 0; i < result.announcements.length; i++) {
       const ann = result.announcements[i];
       if (hasChinese(ann.title) || hasChinese(ann.body)) {
-        console.log(`Translating announcement ${i + 1}: ${ann.title.slice(0, 30)}…`);
+        console.log(`Translating announcement ${i + 1}…`);
         try {
           const translated = await translateAnnouncement(ann);
           result.announcements[i].title = translated.title;
