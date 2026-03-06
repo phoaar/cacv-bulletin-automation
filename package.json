@@ -4,7 +4,12 @@
   "description": "Automated bulletin generation for CACV — Google Sheets → HTML",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node tests/test-translate.js",
+    "lint": "eslint src/**/*.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +23,8 @@
     "pdf-lib": "^1.17.1",
     "puppeteer-core": "^23.0.0",
     "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
   }
 }

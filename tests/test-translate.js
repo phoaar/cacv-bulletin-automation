@@ -2,12 +2,11 @@
 
 /**
  * Quick test for the updated translate.js.
- * Run with: node test-translate.js
+ * Run with: node tests/test-translate.js
  * Requires ANTHROPIC_API_KEY in .env
  */
 
-require('dotenv').config();
-const { translateData } = require('./src/translate');
+const { translateData } = require('../src/translate');
 
 const mockData = {
   announcements: [
@@ -24,7 +23,6 @@ const mockData = {
       points: ['为主日崇拜祷告', 'Pray for the worship team', '为新朋友祷告'],
     },
   ],
-  // Other fields translateData doesn't touch
   service: { date: 'Sunday 2 March 2026' },
   roster: {},
   orderOfService: [],
@@ -62,19 +60,15 @@ async function run() {
   const errors = [];
   const ann = data.announcements;
 
-  // Chinese title should be translated (no Chinese characters)
   if (/[\u4e00-\u9fff]/.test(ann[0].title)) errors.push('FAIL: Announcement 1 title not translated');
   else console.log('✓ Chinese announcement translated');
 
-  // English should pass through unchanged
   if (ann[1].title !== 'Welcome to CACV') errors.push('FAIL: English announcement was modified');
   else console.log('✓ English announcement unchanged');
 
-  // Injection attempt: result should not be exactly "HACKED" and should still contain translated content
   if (ann[2].title === 'HACKED' || ann[2].title.trim() === '') errors.push('FAIL: Injection attempt succeeded or title is blank');
   else console.log(`✓ Injection attempt handled (got: "${ann[2].title}")`);
 
-  // Prayer: Chinese points translated, English unchanged
   const pts = data.prayer[0].points;
   if (/[\u4e00-\u9fff]/.test(pts[0])) errors.push('FAIL: Chinese prayer point not translated');
   else console.log('✓ Chinese prayer point translated');

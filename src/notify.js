@@ -1,6 +1,8 @@
 'use strict';
 
+const fs = require('fs');
 const nodemailer = require('nodemailer');
+const config = require('./config');
 
 let transporter;
 
@@ -9,8 +11,8 @@ function getTransporter() {
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
+        user: config.GMAIL_USER,
+        pass: config.GMAIL_APP_PASSWORD,
       },
     });
   }
@@ -21,17 +23,11 @@ function getTransporter() {
  * Returns true if email notifications are configured.
  */
 function canSendEmail() {
-  return !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+  return !!(config.GMAIL_USER && config.GMAIL_APP_PASSWORD);
 }
 
 /**
  * Send a notification email to all addresses in the list.
- * @param {Object} opts
- * @param {string[]} opts.to
- * @param {string}   opts.subject
- * @param {string}   opts.text
- * @param {string}   opts.html
- * @param {Array}    [opts.attachments]  nodemailer attachments array
  */
 async function sendNotification({ to, subject, text, html, attachments }) {
   if (!canSendEmail()) {
@@ -44,7 +40,7 @@ async function sendNotification({ to, subject, text, html, attachments }) {
   }
 
   const mailOpts = {
-    from: `"CACV Bulletin" <${process.env.GMAIL_USER}>`,
+    from: `"CACV Bulletin" <${config.GMAIL_USER}>`,
     to:   to.join(', '),
     subject,
     text,
@@ -97,23 +93,15 @@ async function notifyFailures({ to, serviceDate, liveUrl, issues }) {
 
 /**
  * Send a success notification, optionally attaching the print PDF.
- * @param {Object} opts
- * @param {string[]} opts.to
- * @param {string}   opts.serviceDate
- * @param {string}   opts.liveUrl
- * @param {string}   [opts.pdfPath]  Absolute path to PDF file to attach
  */
 async function notifySuccess({ to, serviceDate, liveUrl, pdfPath }) {
   const attachments = [];
-  if (pdfPath) {
-    const fs = require('fs');
-    if (fs.existsSync(pdfPath)) {
-      attachments.push({
-        filename: `cacv-bulletin-${serviceDate.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
-        path: pdfPath,
-        contentType: 'application/pdf',
-      });
-    }
+  if (pdfPath && fs.existsSync(pdfPath)) {
+    attachments.push({
+      filename: `cacv-bulletin-${serviceDate.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+      path: pdfPath,
+      contentType: 'application/pdf',
+    });
   }
 
   const pdfNote = attachments.length > 0

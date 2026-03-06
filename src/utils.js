@@ -1,6 +1,23 @@
 'use strict';
 
 /**
+ * Shared Constants
+ */
+// Safer URL Regex to mitigate ReDoS: constrained repetition and required domain structure
+const URL_REGEX = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+const AUTO_LINK_REGEX = new RegExp(`(${URL_REGEX.source}|${EMAIL_REGEX.source})`, 'g');
+
+const MONTHS_MAP = {
+  january:0,february:1,march:2,april:3,may:4,june:5,
+  july:6,august:7,september:8,october:9,november:10,december:11,
+  jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+};
+
+const ORDINAL_RE = /(\d+)(st|nd|rd|th)/i;
+const DATE_SPLIT_RE = /[\s,/\-]+/;
+
+/**
  * Escape HTML special characters to prevent injection.
  */
 function esc(str) {
@@ -79,7 +96,7 @@ function youVersionUrl(reference) {
  */
 function extractUrl(text) {
   if (!text) return null;
-  const match = text.match(/https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+/);
+  const match = text.match(URL_REGEX);
   if (!match) return null;
   let url = match[0];
   const punctuationMatch = url.match(/[.,!?;:)]+$/);
@@ -93,16 +110,18 @@ function extractUrl(text) {
  * Auto-link URLs and email addresses in raw text.
  */
 function autoLink(rawText) {
-  const pattern = /(https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z]{2,})+\/[^\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+  if (!rawText) return '';
+  
+  // Use matchAll to avoid global regex state issues
+  const matches = Array.from(rawText.matchAll(AUTO_LINK_REGEX));
   
   let result = '';
   let lastIndex = 0;
-  let match;
 
-  while ((match = pattern.exec(rawText)) !== null) {
+  for (const match of matches) {
     result += esc(rawText.slice(lastIndex, match.index));
     
-    let url = match[1];
+    let url = match[0];
     let trailingPunctuation = '';
 
     const punctuationMatch = url.match(/[.,!?;:)]+$/);
@@ -120,7 +139,7 @@ function autoLink(rawText) {
     }
 
     result += esc(trailingPunctuation);
-    lastIndex = match.index + match[1].length;
+    lastIndex = match.index + match[0].length;
   }
   
   result += esc(rawText.slice(lastIndex));
@@ -170,10 +189,10 @@ function buildAnnouncementItems(announcements, isPrint = false) {
   if (isPrint) {
     return '<ol>\n' + announcements.map(a => {
       const body = a.body ? `<span class="ann-body"> — ${autoLink(a.body)}</span>` : '';
-      const qrHtml = (isPrint && a.qrSvg) 
+      const qrHtml = a.qrSvg
         ? `<div class="ann-qr">${a.qrSvg}</div>` 
         : '';
-      const hasQrClass = (isPrint && a.qrSvg) ? ' class="has-qr"' : '';
+      const hasQrClass = a.qrSvg ? ' class="has-qr"' : '';
       return `  <li${hasQrClass}><strong>${esc(a.title)}</strong>${body}${qrHtml}</li>`;
     }).join('\n') + '\n</ol>';
   }
@@ -221,11 +240,10 @@ ${items}
 
 /**
  * Detects Google Drive URLs and converts them to a direct preview format
- * suitable for embedding in an HTML <embed> tag.
  */
 function fixDriveUrl(url) {
   if (!url) return '';
-  const match = url.match(/[-\w]{25,}/);
+  const match = url.match(/[a-zA-Z0-9_-]{25,110}/);
   if (match && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
     return `https://drive.google.com/file/d/${match[0]}/preview`;
   }
@@ -234,25 +252,18 @@ function fixDriveUrl(url) {
 
 /**
  * Parse a human-readable date string into a local-midnight Date object.
- * Handles formats like "22nd February 2026", "22 Feb 2026", "16 Mar 2026",
- * "Sunday, 1 March 2026". Returns null if parsing fails.
  */
 function parseServiceDate(dateStr) {
   if (!dateStr) return null;
-  const months = {
-    january:0,february:1,march:2,april:3,may:4,june:5,
-    july:6,august:7,september:8,october:9,november:10,december:11,
-    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-  };
-  const cleaned = String(dateStr).replace(/(\d+)(st|nd|rd|th)/i, '$1');
-  const parts   = cleaned.split(/[\s,/\-]+/);
+  const cleaned = String(dateStr).replace(ORDINAL_RE, '$1');
+  const parts   = cleaned.split(DATE_SPLIT_RE);
   let day, month, year;
   for (const p of parts) {
     const num = parseInt(p, 10);
     const key = p.toLowerCase();
     if (!isNaN(num) && num > 31)                            year  = num;
     else if (!isNaN(num) && num >= 1 && num <= 31 && !day) day   = num;
-    else if (months[key] !== undefined)                     month = months[key];
+    else if (MONTHS_MAP[key] !== undefined)                  month = MONTHS_MAP[key];
   }
   if (day !== undefined && month !== undefined && year !== undefined) {
     return new Date(year, month, day);
@@ -260,8 +271,66 @@ function parseServiceDate(dateStr) {
   return null;
 }
 
+/**
+ * Normalise a human-readable date string to a YYYYMMDD numeric key.
+ */
+function dateToKey(dateStr) {
+  const d = parseServiceDate(dateStr);
+  if (!d) return null;
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+/**
+ * Return true if two date strings refer to the same calendar day.
+ */
+function datesMatch(a, b) {
+  const ka = dateToKey(a);
+  const kb = dateToKey(b);
+  if (ka === null || kb === null) return false;
+  return ka === kb;
+}
+
+/**
+ * Convert Google Sheets serial date number to JS Date.
+ */
+function sheetsSerialToDate(serial) {
+  return new Date((serial - 25569) * 86400 * 1000);
+}
+
+/**
+ * Format a roster date from serial or raw string.
+ */
+function formatRosterDate(val) {
+  if (typeof val !== 'number') return String(val || '').trim();
+  const d = sheetsSerialToDate(val);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/**
+ * Parse event date parts into a Date object.
+ */
+function parseEventDate(monthStr, dayStr, yearStr, fallbackYear) {
+  const month = MONTHS_MAP[(monthStr || '').toLowerCase().trim()];
+  if (month === undefined) return null;
+  const day = parseInt(dayStr);
+  if (isNaN(day)) return null;
+  const year = parseInt(yearStr) || fallbackYear || new Date().getFullYear();
+  return new Date(year, month, day);
+}
+
+/**
+ * Basic email validation.
+ */
+function validateEmail(email) {
+  return EMAIL_REGEX.test(email);
+}
+
 module.exports = {
   esc, getTeamRoles, bibleGatewayUrl, youVersionUrl,
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems,
-  extractUrl, fixDriveUrl, parseServiceDate
+  extractUrl, fixDriveUrl, parseServiceDate,
+  sheetsSerialToDate, formatRosterDate, parseEventDate, validateEmail,
+  dateToKey, datesMatch,
+  URL_REGEX
 };

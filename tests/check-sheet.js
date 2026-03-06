@@ -1,17 +1,15 @@
 'use strict';
 
-require('dotenv').config();
-const { getAccessToken } = require('./src/google-auth');
+const config = require('../src/config');
+const { getAccessToken } = require('../src/google-auth');
 
 async function checkSheet() {
-  const sheetId = process.env.SHEET_ID;
-  const credPath = process.env.CREDENTIALS_PATH;
   const scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 
   try {
-    const token = await getAccessToken(credPath, scopes);
+    const token = await getAccessToken(config.CREDENTIALS_PATH, scopes);
     const range = "'📋 Service Details'!A:C";
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.SHEET_ID}/values/${encodeURIComponent(range)}`;
     
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }

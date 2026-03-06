@@ -4,8 +4,7 @@ const {
   esc, getTeamRoles, bibleGatewayUrl, youVersionUrl, 
   autoLink, buildOrderItems, buildAnnouncementItems, buildPrayerItems 
 } = require('./utils');
-
-const BUILD_VERSION = process.env.BUILD_VERSION || 'V5.0-STABLE-PDF';
+const config = require('./config');
 
 /**
  * Build the Order of Service list items.
@@ -18,7 +17,7 @@ function buildOrder(order) {
  * Build the Service Team chips.
  */
 function buildTeam(s) {
-  return getTeamRoles(s)
+  return getTeamRoles(s || {})
     .map(r => `      <div class="team-chip"><div class="team-role">${esc(r.label)}</div><div class="team-name">${esc(r.val)}</div></div>`)
     .join('\n');
 }
@@ -42,9 +41,10 @@ function buildPrayer(prayer) {
  */
 function buildRoster(roster) {
   if (!roster || roster.length === 0) return '<tr><td colspan="10" style="color:var(--muted);text-align:center">No roster data available</td></tr>';
-  return roster.map(r =>
-    `          <tr><td>${esc(r.date)}</td><td>${esc(r.preacher)}</td><td>${esc(r.chair)}</td><td>${esc(r.worship)}</td><td>${esc(r.music)}</td><td>${esc(r.powerpoint)}</td><td>${esc(r.paSound)}</td><td>${esc(r.chiefUsher)}</td><td>${esc(r.ushers)}</td><td>${esc(r.morningTea)}</td></tr>`
-  ).join('\n');
+  return roster.map(r => {
+    if (!r) return '';
+    return `          <tr><td>${esc(r.date)}</td><td>${esc(r.preacher)}</td><td>${esc(r.chair)}</td><td>${esc(r.worship)}</td><td>${esc(r.music)}</td><td>${esc(r.powerpoint)}</td><td>${esc(r.paSound)}</td><td>${esc(r.chiefUsher)}</td><td>${esc(r.ushers)}</td><td>${esc(r.morningTea)}</td></tr>`;
+  }).join('\n');
 }
 
 /**
@@ -55,6 +55,7 @@ function buildEvents(events) {
 
   let lastMonth = '';
   return events.map(e => {
+    if (!e) return '';
     const displayMonth = e.month !== lastMonth ? e.month : '';
     if (e.month) lastMonth = e.month;
     return `          <tr><td>${esc(displayMonth)}</td><td>${esc(e.day)}</td><td>${esc(e.event)}</td><td>${esc(e.responsible)}</td></tr>`;
@@ -65,6 +66,7 @@ function buildEvents(events) {
  * Build the full bulletin HTML from the structured data object.
  */
 function buildThemeCard(theme) {
+  if (!theme) return '';
   const cells = (theme.cells || []).map(c => `
       <div class="hope-cell">
         <div class="hope-letter">${esc(c.letter)}</div>
@@ -82,7 +84,7 @@ function buildThemeCard(theme) {
 }
 
 function buildBulletin(data, failures) {
-  const { service, order, announcements, prayer, roster, events, theme } = data;
+  const { service = {}, order = [], announcements = [], prayer = [], roster = [], events = [], theme = {} } = data;
 
   const engAtt  = service.attendanceEng   || '—';
   const chiAtt  = service.attendanceChi   || '—';
@@ -121,15 +123,17 @@ function buildBulletin(data, failures) {
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   /* ── GRAIN OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0.032;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 160px 160px;
+  @media (prefers-reduced-motion: no-preference) {
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 160px 160px;
+    }
   }
 
   body {
@@ -149,27 +153,29 @@ function buildBulletin(data, failures) {
     isolation: isolate;
   }
 
-  .hero::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
-    background: radial-gradient(ellipse, rgba(168,184,150,0.2) 0%, transparent 70%);
-    top: -200px; right: -100px;
-    animation: drift 18s ease-in-out infinite alternate;
-  }
-  .hero::after {
-    content: '';
-    position: absolute;
-    width: 400px; height: 400px;
-    border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%;
-    background: radial-gradient(ellipse, rgba(139,165,196,0.12) 0%, transparent 65%);
-    bottom: -120px; left: -60px;
-    animation: drift 22s ease-in-out infinite alternate-reverse;
-  }
-  @keyframes drift {
-    from { transform: translate(0,0) rotate(0deg) scale(1); }
-    to   { transform: translate(30px, 20px) rotate(8deg) scale(1.08); }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+      background: radial-gradient(ellipse, rgba(168,184,150,0.2) 0%, transparent 70%);
+      top: -200px; right: -100px;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%;
+      background: radial-gradient(ellipse, rgba(139,165,196,0.12) 0%, transparent 65%);
+      bottom: -120px; left: -60px;
+      animation: drift 22s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes drift {
+      from { transform: translate(0,0) rotate(0deg) scale(1); }
+      to   { transform: translate(30px, 20px) rotate(8deg) scale(1.08); }
+    }
   }
 
   .hero-blob {
@@ -258,7 +264,7 @@ function buildBulletin(data, failures) {
   .hero-date {
     font-family: 'Instrument Serif', serif;
     font-size: clamp(16px, 2.8vw, 24px);
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.7);
     font-style: italic;
     margin-bottom: 28px;
   }
@@ -271,7 +277,7 @@ function buildBulletin(data, failures) {
   .hero-pill {
     background: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.7);
     font-size: 12px;
     padding: 7px 16px;
     border-radius: 100px;
@@ -308,7 +314,7 @@ function buildBulletin(data, failures) {
     font-size: 9.5px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.7);
     margin-bottom: 5px;
     font-weight: 600;
   }
@@ -320,31 +326,10 @@ function buildBulletin(data, failures) {
   }
   .sermon-ref {
     font-size: 13px;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.75);
     margin-top: 3px;
     font-style: italic;
   }
-  .bible-btns-sm {
-    display: inline-flex;
-    gap: 5px;
-    margin-left: 8px;
-    flex-shrink: 0;
-  }
-  .bible-btn-sm {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 9px;
-    border-radius: 100px;
-    border: 1px solid var(--fog);
-    background: var(--sand);
-    color: var(--muted);
-    font-size: 10.5px;
-    font-weight: 500;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-  }
-  .bible-btn-sm:hover { background: var(--fog); color: var(--ink); border-color: var(--fog); }
 
   .bible-btns {
     display: flex;
@@ -356,16 +341,17 @@ function buildBulletin(data, failures) {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 5px 12px;
+    padding: 8px 16px;
     border-radius: 100px;
     border: 1px solid rgba(255,255,255,0.25);
     background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.9);
     font-size: 11.5px;
     font-weight: 500;
     text-decoration: none;
     transition: background 0.15s, border-color 0.15s;
     white-space: nowrap;
+    min-height: 44px;
   }
   .bible-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); }
   .bible-btn svg { width: 11px; height: 11px; opacity: 0.7; flex-shrink: 0; }
@@ -403,20 +389,24 @@ function buildBulletin(data, failures) {
       inset 0 1px 0 rgba(255,255,255,0.8);
     position: relative;
     overflow: hidden;
-    animation: up 0.45s cubic-bezier(0.22,1,0.36,1) both;
   }
-  @keyframes up {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:translateY(0); }
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      animation: up 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes up {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .card:nth-child(1){animation-delay:.04s}
+    .card:nth-child(2){animation-delay:.08s}
+    .card:nth-child(3){animation-delay:.12s}
+    .card:nth-child(4){animation-delay:.16s}
+    .card:nth-child(5){animation-delay:.20s}
+    .card:nth-child(6){animation-delay:.24s}
+    .card:nth-child(7){animation-delay:.28s}
+    .card:nth-child(8){animation-delay:.32s}
   }
-  .card:nth-child(1){animation-delay:.04s}
-  .card:nth-child(2){animation-delay:.08s}
-  .card:nth-child(3){animation-delay:.12s}
-  .card:nth-child(4){animation-delay:.16s}
-  .card:nth-child(5){animation-delay:.20s}
-  .card:nth-child(6){animation-delay:.24s}
-  .card:nth-child(7){animation-delay:.28s}
-  .card:nth-child(8){animation-delay:.32s}
 
   .card::before {
     content: '';
@@ -458,7 +448,6 @@ function buildBulletin(data, failures) {
     cursor: default;
     list-style-type: none !important;
   }
-  .order-row::before { content: none !important; } /* Kill any CSS chevrons */
   .order-row:hover { background: var(--sand); }
   .order-idx {
     width: 26px; height: 26px;
@@ -561,7 +550,7 @@ function buildBulletin(data, failures) {
     font-size: 9.5px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.65);
+    color: rgba(255,255,255,0.7);
     font-weight: 600;
   }
   .tbl td {
@@ -613,17 +602,21 @@ function buildBulletin(data, failures) {
     position: relative;
     isolation: isolate;
     border: 1px solid rgba(0,0,0,0.1);
-    animation: up 0.45s cubic-bezier(0.22,1,0.36,1) 0.36s both;
   }
-  .hope-card::before {
-    content: '';
-    position: absolute;
-    width: 500px; height: 500px;
-    border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
-    background: radial-gradient(ellipse, rgba(139,165,196,0.14) 0%, transparent 65%);
-    top: -200px; right: -100px;
-    animation: drift 20s ease-in-out infinite alternate;
-    pointer-events: none;
+  @media (prefers-reduced-motion: no-preference) {
+    .hope-card {
+      animation: up 0.45s cubic-bezier(0.22,1,0.36,1) 0.36s both;
+    }
+    .hope-card::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
+      background: radial-gradient(ellipse, rgba(139,165,196,0.14) 0%, transparent 65%);
+      top: -200px; right: -100px;
+      animation: drift 20s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
   }
   .hope-card::after {
     content: '';
@@ -641,7 +634,7 @@ function buildBulletin(data, failures) {
     z-index: 1;
     border-bottom: 1px solid rgba(255,255,255,0.06);
   }
-  .hope-eyebrow { font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
+  .hope-eyebrow { font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
   .hope-title {
     font-family: 'Instrument Serif', serif;
     font-size: 34px;
@@ -677,7 +670,7 @@ function buildBulletin(data, failures) {
     flex-shrink: 0;
   }
   .hope-word { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 3px; }
-  .hope-desc { font-size: 12px; color: rgba(255,255,255,0.35); font-style: italic; line-height: 1.5; }
+  .hope-desc { font-size: 12px; color: rgba(255,255,255,0.7); font-style: italic; line-height: 1.5; }
 
   /* ── FOOTER ── */
   footer {
@@ -724,13 +717,13 @@ function buildBulletin(data, failures) {
     font-size: 9.5px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255,255,255,0.7);
     margin-bottom: 2px;
     font-weight: 600;
   }
-  .footer-staff-name { font-size: 13.5px; color: rgba(255,255,255,0.8); font-weight: 500; margin-bottom: 3px; }
+  .footer-staff-name { font-size: 13.5px; color: rgba(255,255,255,0.9); font-weight: 500; margin-bottom: 3px; }
   .footer-staff-contact { display: flex; flex-direction: column; gap: 1px; }
-  .footer-staff-contact a { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .footer-staff-contact a { font-size: 12px; color: rgba(255,255,255,0.75); }
   .footer-staff-contact a:hover { color: var(--gold); }
   .footer-giving-box {
     background: rgba(255,255,255,0.07);
@@ -743,20 +736,20 @@ function buildBulletin(data, failures) {
     gap: 8px;
   }
   .footer-giving-row { display: flex; flex-direction: column; gap: 1px; }
-  .footer-giving-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); font-weight: 600; }
-  .footer-giving-val { font-size: 13.5px; color: rgba(255,255,255,0.75); font-weight: 500; }
-  .footer-giving-note { font-size: 11.5px; color: rgba(255,255,255,0.25); line-height: 1.5; font-style: italic; }
+  .footer-giving-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); font-weight: 600; }
+  .footer-giving-val { font-size: 13.5px; color: rgba(255,255,255,0.85); font-weight: 500; }
+  .footer-giving-note { font-size: 11.5px; color: rgba(255,255,255,0.7); line-height: 1.5; font-style: italic; }
   .footer-contact-items { display: flex; flex-direction: column; gap: 11px; }
-  .footer-contact-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-  .footer-contact-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; opacity: 0.6; }
-  .footer-contact-item a { color: rgba(255,255,255,0.5); }
+  .footer-contact-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+  .footer-contact-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; opacity: 0.85; }
+  .footer-contact-item a { color: rgba(255,255,255,0.75); }
   .footer-contact-item a:hover { color: var(--gold); }
   .footer-base {
     display: flex;
     justify-content: space-between;
     padding-top: 24px;
     font-size: 11.5px;
-    color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
     flex-wrap: wrap;
     gap: 8px;
@@ -813,7 +806,7 @@ function buildBulletin(data, failures) {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     border-radius: 100px;
     border: 1px solid var(--fog);
     background: var(--white);
@@ -826,6 +819,9 @@ function buildBulletin(data, failures) {
     text-decoration: none;
     transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
     flex-shrink: 0;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
   }
   .nav-btn:hover {
     background: var(--sand);
@@ -837,6 +833,10 @@ function buildBulletin(data, failures) {
     background: #3D4A2A;
     border-color: #3D4A2A;
     color: rgba(255,255,255,0.92);
+  }
+  .nav-btn:focus-visible {
+    outline: 2px solid var(--slate);
+    outline-offset: 2px;
   }
   .nav-btn svg {
     width: 12px;
@@ -908,7 +908,7 @@ ${failures && failures.length > 0 ? `
 </div>
 
 <!-- STICKY NAV -->
-<nav class="sticky-nav" aria-label="Jump to section">
+<nav class="sticky-nav" id="main-nav" aria-label="Jump to section">
   <div class="nav-scroll">
     <a href="#order" class="nav-btn">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12M2 8h9M2 12h6"/></svg>
@@ -1020,7 +1020,7 @@ ${buildEvents(events)}
     <div class="card-label">Attachments & Downloads</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
       ${data.pdfAttachments.map(att => `
-      <a href="${esc(att.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;background:var(--slate);color:#fff;text-decoration:none;padding:16px 20px;border-radius:12px;font-weight:600;transition:transform 0.15s, background 0.15s;">
+      <a href="${esc(att.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;background:var(--slate);color:#fff;text-decoration:none;padding:16px 20px;border-radius:12px;font-weight:600;transition:transform 0.15s, background 0.15s;min-height:44px;">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M4 14h8M8 2v9m0 0l-3-3m3 3l3-3"/></svg>
         Download ${esc(att.name)}
       </a>`).join('')}
@@ -1084,7 +1084,7 @@ ${buildEvents(events)}
         <div class="footer-contact-items">
           <div class="footer-contact-item">
             <div class="footer-contact-icon">📍</div>
-            <div>17 Livingstone Close, Burwood VIC 3125<br><span style="opacity:0.6;font-size:11.5px">PO Box 7091 Wattle Park 3128</span></div>
+            <div>17 Livingstone Close, Burwood VIC 3125<br><span style="opacity:0.8;font-size:11.5px">PO Box 7091 Wattle Park 3128</span></div>
           </div>
           <div class="footer-contact-item">
             <div class="footer-contact-icon">📞</div>
@@ -1104,7 +1104,7 @@ ${buildEvents(events)}
     </div>
     <div class="footer-base">
       <span>&copy; 2026 Christian Alliance Church of Victoria</span>
-      <span style="opacity:0.5">${BUILD_VERSION}</span>
+      <span style="opacity:0.8">${config.BUILD_VERSION}</span>
       <span>C&amp;MA Member Church</span>
     </div>
   </div>
@@ -1128,7 +1128,7 @@ ${buildEvents(events)}
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
     });
-  }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+  }, { rootMargin: '-10% 0px -50% 0px', threshold: 0 });
 
   sections.forEach(id => {
     const el = document.getElementById(id);
@@ -1141,8 +1141,8 @@ ${buildEvents(events)}
       e.preventDefault();
       const target = document.querySelector(btn.getAttribute('href'));
       if (target) {
-        const offset = 56;
-        const top = target.getBoundingClientRect().top + window.scrollY - offset - 12;
+        const navHeight = document.getElementById('main-nav')?.offsetHeight || 56;
+        const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 12;
         window.scrollTo({ top, behavior: 'smooth' });
       }
     });

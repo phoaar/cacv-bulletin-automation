@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 async function createSamplePdf() {
@@ -38,8 +39,9 @@ async function createSamplePdf() {
   });
 
   const pdfBytes = await pdfDoc.save();
-  fs.writeFileSync('sample-attachment.pdf', pdfBytes);
-  console.log('✓ Created sample-attachment.pdf');
+  const outputPath = path.join(__dirname, '..', 'sample-attachment.pdf');
+  fs.writeFileSync(outputPath, pdfBytes);
+  console.log(`✓ Created sample-attachment.pdf at ${outputPath}`);
 }
 
 createSamplePdf().catch(console.error);

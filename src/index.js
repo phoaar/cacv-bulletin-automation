@@ -1,53 +1,88 @@
 'use strict';
 
-require('dotenv').config();
-
 const fs   = require('fs');
+const fsp  = require('fs').promises;
 const path = require('path');
+const config = require('./config');
 const { fetchBulletinData, updateRunStatus }  = require('./sheets');
 const { translateData }      = require('./translate');
 const { buildBulletin }      = require('./template');
 const { buildPrintBulletin, buildBookletBulletin } = require('./print-template');
-const { generatePdf, protectPdf } = require('./pdf');
+const { generatePdf, protectPdf, downloadFromDrive } = require('./pdf');
 const { generateQrSvg }      = require('./qr');
 const { validateBulletin, validateLinks }   = require('./validate');
 const { notifyFailures, notifySuccess, canSendEmail } = require('./notify');
 const { canPublishWordPress, publishToWordPress } = require('./wordpress');
 const { extractUrl, parseServiceDate } = require('./utils');
 
-// Official CACV Bulletin URL
-const LIVE_URL = process.env.LIVE_URL || 'https://cacv.org.au/cacv-english-bulletin/';
-
-function cleanOldOutputs(dir, maxAgeDays) {
+/**
+ * Clean up old output files asynchronously.
+ */
+async function cleanOldOutputs(dir, maxAgeDays) {
   const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
   let removed = 0;
-  for (const file of fs.readdirSync(dir)) {
-    if (!/\.(html|pdf)$/.test(file)) continue;
-    const filePath = path.join(dir, file);
-    const { mtimeMs } = fs.statSync(filePath);
-    if (mtimeMs < cutoff) {
-      fs.unlinkSync(filePath);
-      removed++;
+  try {
+    const files = await fsp.readdir(dir);
+    for (const file of files) {
+      if (!/\.(html|pdf)$/.test(file)) continue;
+      const filePath = path.join(dir, file);
+      const stats = await fsp.stat(filePath);
+      if (stats.mtimeMs < cutoff) {
+        await fsp.unlink(filePath);
+        removed++;
+      }
     }
+    if (removed > 0) console.log(`Cleaned ${removed} output file(s) older than ${maxAgeDays} days.`);
+  } catch (err) {
+    console.warn(`Failed to clean old outputs: ${err.message}`);
   }
-  if (removed > 0) console.log(`Cleaned ${removed} output file(s) older than ${maxAgeDays} days.`);
+}
+
+/**
+ * Helper to generate and protect a PDF.
+ */
+async function generateAndProtectPdf(name, htmlBuilder, data, outputDir, dateSlug, opts = {}) {
+  try {
+    console.log(`Building ${name} HTML…`);
+    const html = htmlBuilder(data);
+    const htmlPath = path.join(outputDir, `bulletin-${name}-${dateSlug}.html`);
+    fs.writeFileSync(htmlPath, html, 'utf8');
+
+    const pdfPath = path.join(outputDir, `bulletin-${name}-${dateSlug}.pdf`);
+    const generated = await generatePdf(path.resolve(htmlPath), pdfPath, {
+      ...opts,
+      attachmentPaths: opts.attachmentPaths || []
+    });
+
+    if (generated) {
+      const pdfPassword = (data.pdfPassword || config.PDF_PASSWORD || '').trim();
+      if (pdfPassword) {
+        try {
+          protectPdf(pdfPath, pdfPassword);
+        } catch (err) {
+          console.warn(`${name} PDF protection skipped: ${err.message}`);
+        }
+      }
+    }
+    return { generated, pdfPath, htmlPath };
+  } catch (err) {
+    console.warn(`${name} PDF generation failed: ${err.message}`);
+    throw err;
+  }
 }
 
 async function main() {
   // ── Validate env ───────────────────────────────────────────────────────────
-  const sheetId = process.env.SHEET_ID;
-  const credsPath = process.env.CREDENTIALS_PATH;
-
-  if (!sheetId) {
+  if (!config.SHEET_ID) {
     console.error('Error: SHEET_ID is not set in .env');
     process.exit(1);
   }
-  if (!credsPath) {
+  if (!config.CREDENTIALS_PATH) {
     console.error('Error: CREDENTIALS_PATH is not set in .env');
     process.exit(1);
   }
-  if (!fs.existsSync(path.resolve(credsPath))) {
-    console.error(`Error: credentials file not found at "${credsPath}"`);
+  if (!fs.existsSync(path.resolve(config.CREDENTIALS_PATH))) {
+    console.error(`Error: credentials file not found at "${config.CREDENTIALS_PATH}"`);
     console.error('Place your service account JSON at that path and try again.');
     process.exit(1);
   }
@@ -55,11 +90,11 @@ async function main() {
   // ── Clean old outputs ──────────────────────────────────────────────────────
   const outputDir = path.join(__dirname, '..', 'output');
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-  cleanOldOutputs(outputDir, 30);
+  await cleanOldOutputs(outputDir, 30);
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
   console.log('Fetching bulletin data from Google Sheets…');
-  const rawData = await fetchBulletinData(sheetId);
+  const rawData = await fetchBulletinData(config.SHEET_ID);
 
   // ── Translate Chinese content ───────────────────────────────────────────────
   const { data, failures } = await translateData(rawData);
@@ -94,13 +129,16 @@ async function main() {
   // ── Build HTML ────────────────────────────────────────────────────────────
   console.log('Building HTML…');
 
-  // Generate QR codes for announcements (Print only)
-  for (const ann of data.announcements) {
+  // Generate QR codes for announcements in parallel
+  await Promise.all(data.announcements.map(async (ann) => {
     const url = extractUrl(ann.body);
     if (url) {
-      ann.qrSvg = await generateQrSvg(url).catch(() => null);
+      ann.qrSvg = await generateQrSvg(url).catch((err) => {
+        console.warn(`Failed to generate QR for announcement: ${err.message}`);
+        return null;
+      });
     }
-  }
+  }));
 
   const html = buildBulletin(data, failures);
 
@@ -114,76 +152,51 @@ async function main() {
 
   // ── Generate QR code for live bulletin ───────────────────────────────────
   console.log('Generating QR code…');
-  data.liveQrSvg = await generateQrSvg(LIVE_URL).catch(() => '');
-  data.liveUrl   = LIVE_URL;
+  data.liveQrSvg = await generateQrSvg(config.LIVE_URL).catch(() => '');
+  data.liveUrl   = config.LIVE_URL;
 
-  // ── Generate print PDF ────────────────────────────────────────────────────
-  let pdfPath = null;
-  const attachmentLocalPaths = [];
-  
+  // ── Handle Attachments ────────────────────────────────────────────────────
+  let attachmentLocalPaths = [];
   if (data.pdfAttachments && data.pdfAttachments.length > 0) {
-    const { downloadFromDrive } = require('./pdf');
-    for (let i = 0; i < data.pdfAttachments.length; i++) {
-      const att = data.pdfAttachments[i];
+    const downloadPromises = data.pdfAttachments.map(async (att, i) => {
       try {
         const localPath = path.join(outputDir, `attachment-${dateSlug}-${i}.pdf`);
         console.log(`Downloading attachment [${att.name}] from: ${att.url}`);
-        await downloadFromDrive(att.url, localPath, credsPath);
-        attachmentLocalPaths.push(localPath);
+        await downloadFromDrive(att.url, localPath, config.CREDENTIALS_PATH);
+        return localPath;
       } catch (err) {
         console.warn(`Failed to download attachment [${att.name}]: ${err.message}`);
+        return null;
       }
-    }
+    });
+    const results = await Promise.all(downloadPromises);
+    attachmentLocalPaths = results.filter(p => p !== null);
   }
 
+  // ── Generate print PDF ────────────────────────────────────────────────────
+  let printPdfPath = null;
+  let printHtmlPath = null;
   try {
-    console.log('Building print HTML…');
-    const printHtml = buildPrintBulletin(data);
-    const printHtmlPath = path.join(outputDir, `bulletin-print-${dateSlug}.html`);
-    fs.writeFileSync(printHtmlPath, printHtml, 'utf8');
-
-    const printPdfPath = path.join(outputDir, `bulletin-print-${dateSlug}.pdf`);
-    const printGenerated = await generatePdf(path.resolve(printHtmlPath), printPdfPath, {
+    const result = await generateAndProtectPdf('print', buildPrintBulletin, data, outputDir, dateSlug, {
       attachmentPaths: attachmentLocalPaths
     });
-    const pdfPassword = data.pdfPassword || process.env.PDF_PASSWORD;
-    if (printGenerated && pdfPassword) {
-      try {
-        protectPdf(printPdfPath, pdfPassword);
-      } catch (err) {
-        console.warn(`Print PDF protection skipped: ${err.message}`);
-      }
-    }
+    printPdfPath = result.pdfPath;
+    printHtmlPath = result.htmlPath;
   } catch (err) {
-    console.warn(`Print PDF generation failed: ${err.message}`);
     allIssues.push(`Print PDF generation failed: ${err.message}`);
   }
 
   // ── Generate booklet PDF (2-up A4 landscape) ──────────────────────────────
+  let pdfPath = null;
   try {
-    console.log('Building booklet HTML…');
-    const bookletHtml = buildBookletBulletin(data);
-    const bookletHtmlPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.html`);
-    fs.writeFileSync(bookletHtmlPath, bookletHtml, 'utf8');
-
-    const bookletPdfPath = path.join(outputDir, `bulletin-booklet-${dateSlug}.pdf`);
-    const bookletGenerated = await generatePdf(path.resolve(bookletHtmlPath), bookletPdfPath, {
+    const result = await generateAndProtectPdf('booklet', buildBookletBulletin, data, outputDir, dateSlug, {
       landscape: true,
       attachmentPaths: attachmentLocalPaths
     });
-    if (bookletGenerated) {
-      pdfPath = bookletPdfPath;
-      const pdfPassword = data.pdfPassword || process.env.PDF_PASSWORD;
-      if (pdfPassword) {
-        try {
-          protectPdf(bookletPdfPath, pdfPassword);
-        } catch (err) {
-          console.warn(`Booklet PDF protection skipped: ${err.message}`);
-        }
-      }
+    if (result.generated) {
+      pdfPath = result.pdfPath;
     }
   } catch (err) {
-    console.warn(`Booklet PDF generation failed: ${err.message}`);
     allIssues.push(`Booklet PDF generation failed: ${err.message}`);
   }
 
@@ -194,8 +207,7 @@ async function main() {
       console.log('✓ Updated index.html');
     }
     
-    const printHtmlPath = path.join(outputDir, `bulletin-print-${dateSlug}.html`);
-    if (fs.existsSync(printHtmlPath)) {
+    if (printHtmlPath && fs.existsSync(printHtmlPath)) {
       fs.copyFileSync(printHtmlPath, path.join(outputDir, 'print.html'));
       console.log('✓ Updated print.html');
     }
@@ -227,11 +239,11 @@ async function main() {
   if (canSendEmail()) {
     if (allIssues.length > 0) {
       console.log('Sending failure notification…');
-      await notifyFailures({ to, serviceDate, liveUrl: LIVE_URL, issues: allIssues });
+      await notifyFailures({ to, serviceDate, liveUrl: config.LIVE_URL, issues: allIssues });
     } else {
       // Only notify success once WordPress has confirmed the page is live
       console.log('Sending success notification…');
-      await notifySuccess({ to, serviceDate, liveUrl: LIVE_URL, pdfPath });
+      await notifySuccess({ to, serviceDate, liveUrl: config.LIVE_URL, pdfPath });
     }
   } else {
     console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
@@ -241,7 +253,7 @@ async function main() {
   const runStatus = allIssues.length === 0
     ? '✓ Live'
     : `⚠️ Issues (${allIssues.length})`;
-  await updateRunStatus(sheetId, runStatus, allIssues);
+  await updateRunStatus(config.SHEET_ID, runStatus, allIssues);
 }
 
 /**

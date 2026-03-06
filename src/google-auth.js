@@ -6,12 +6,12 @@ const path = require('path');
 
 // In-memory token cache: key → { token, expiresAt }
 const tokenCache = new Map();
+const MAX_CACHE_SIZE = 10;
+const JWT_EXPIRY_SECONDS = 3600;
 
 /**
  * Generate a Google Access Token using a Service Account JSON file.
- * Tokens are cached for their lifetime (minus a 60s buffer) to avoid
- * unnecessary round-trips to the Google token endpoint.
- * This replaces the heavy google-auth-library.
+ * Tokens are cached for their lifetime (minus a 60s buffer).
  */
 async function getAccessToken(credPath, scopes) {
   const cacheKey = `${path.resolve(credPath)}::${[...scopes].sort().join(',')}`;
@@ -19,6 +19,7 @@ async function getAccessToken(credPath, scopes) {
   if (cached && Date.now() < cached.expiresAt) {
     return cached.token;
   }
+  
   const creds = JSON.parse(fs.readFileSync(path.resolve(credPath), 'utf8'));
   
   const header = {
@@ -31,7 +32,7 @@ async function getAccessToken(credPath, scopes) {
     iss: creds.client_email,
     scope: scopes.join(' '),
     aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
+    exp: now + JWT_EXPIRY_SECONDS,
     iat: now
   };
 
@@ -58,8 +59,14 @@ async function getAccessToken(credPath, scopes) {
   const data = await res.json();
   if (!res.ok) throw new Error(`Google Auth Failed: ${data.error_description || data.error}`);
 
+  // Prevent unbounded cache growth
+  if (tokenCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = tokenCache.keys().next().value;
+    tokenCache.delete(firstKey);
+  }
+
   // Cache for the token's lifetime minus 60s buffer
-  const ttl = (data.expires_in || 3600) - 60;
+  const ttl = (data.expires_in || JWT_EXPIRY_SECONDS) - 60;
   tokenCache.set(cacheKey, { token: data.access_token, expiresAt: Date.now() + ttl * 1000 });
 
   return data.access_token;

@@ -1,17 +1,25 @@
 'use strict';
 
-const path = require('path');
+const { 
+  parseServiceDate, 
+  sheetsSerialToDate, 
+  formatRosterDate, 
+  parseEventDate, 
+  validateEmail 
+} = require('./utils');
 const { getAccessToken } = require('./google-auth');
-const { parseServiceDate } = require('./utils');
+const config = require('./config');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const FETCH_TIMEOUT = 15000;
+const SHEET_HEADER_ROWS = 4;
+const MAX_ANNOUNCEMENTS = 12;
 
 /**
  * Fetch multiple ranges from a spreadsheet in a single API call.
- * Returns an array of data arrays in the same order as the requested ranges.
  */
 async function batchGet(sheetId, ranges, valueRenderOption = 'FORMATTED_VALUE') {
-  const token = await getAccessToken(process.env.CREDENTIALS_PATH, SCOPES);
+  const token = await getAccessToken(config.CREDENTIALS_PATH, SCOPES);
   const params = new URLSearchParams({
     valueRenderOption,
     majorDimension: 'ROWS'
@@ -21,7 +29,8 @@ async function batchGet(sheetId, ranges, valueRenderOption = 'FORMATTED_VALUE') 
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${params}`;
   
   const res = await fetch(url, {
-    headers: { 'Authorization': `Bearer ${token}` }
+    headers: { 'Authorization': `Bearer ${token}` },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT)
   });
   
   const data = await res.json();
@@ -34,7 +43,7 @@ async function batchGet(sheetId, ranges, valueRenderOption = 'FORMATTED_VALUE') 
  * Write values to multiple ranges in a single API call.
  */
 async function batchUpdate(sheetId, data) {
-  const token = await getAccessToken(process.env.CREDENTIALS_PATH, SCOPES);
+  const token = await getAccessToken(config.CREDENTIALS_PATH, SCOPES);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchUpdate`;
   
   const res = await fetch(url, {
@@ -49,41 +58,14 @@ async function batchUpdate(sheetId, data) {
         range: item.range,
         values: item.values
       }))
-    })
+    }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT)
   });
   
   if (!res.ok) {
     const err = await res.json();
     throw new Error(`Sheets Update Error: ${err.error?.message || 'Unknown'}`);
   }
-}
-
-// ─── Helpers (Kept from original) ──────────────────────────────────────────────
-
-function sheetsSerialToDate(serial) {
-  return new Date((serial - 25569) * 86400 * 1000);
-}
-
-function formatRosterDate(val) {
-  if (typeof val !== 'number') return String(val || '').trim();
-  const d = sheetsSerialToDate(val);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
-
-
-function parseEventDate(monthStr, dayStr, yearStr, fallbackYear) {
-  const months = {
-    january:0,february:1,march:2,april:3,may:4,june:5,
-    july:6,august:7,september:8,october:9,november:10,december:11,
-    jan:0,feb:1,mar:2,apr:3,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-  };
-  const month = months[(monthStr || '').toLowerCase().trim()];
-  if (month === undefined) return null;
-  const day = parseInt(dayStr);
-  if (isNaN(day)) return null;
-  const year = parseInt(yearStr) || fallbackYear || new Date().getFullYear();
-  return new Date(year, month, day);
 }
 
 function toKV(rows) {
@@ -142,7 +124,7 @@ async function fetchBulletinData(sheetId) {
   };
 
   const order = orderRows
-    .slice(4)
+    .slice(SHEET_HEADER_ROWS)
     .filter(r => r[1] && r[1].trim())
     .map(r => ({
       step:   (r[0] || '').trim(),
@@ -152,9 +134,9 @@ async function fetchBulletinData(sheetId) {
     }));
 
   const announcements = announceRows
-    .slice(4)
+    .slice(SHEET_HEADER_ROWS)
     .filter(r => r[1] && r[1].trim())
-    .slice(0, 12)
+    .slice(0, MAX_ANNOUNCEMENTS)
     .map(r => ({
       title: (r[1] || '').trim(),
       body:  (r[2] || '').trim(),
@@ -162,7 +144,7 @@ async function fetchBulletinData(sheetId) {
 
   const prayerMap = {};
   const prayerOrder = [];
-  for (const row of prayerRows.slice(4)) {
+  for (const row of prayerRows.slice(SHEET_HEADER_ROWS)) {
     const point = (row[1] || '').trim();
     if (!point) continue;
     const group = (row[0] || '').trim() || prayerOrder[prayerOrder.length - 1] || 'General';
@@ -174,17 +156,13 @@ async function fetchBulletinData(sheetId) {
   }
   const prayer = prayerOrder.map(g => ({ group: g, points: prayerMap[g] }));
 
-  // Use local midnight so both numeric (sheetsSerialToDate) and text (parseServiceDate)
-  // date paths are compared against the same reference — both return local-time dates.
   const _now = new Date();
   const todayMs = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate()).getTime();
   const roster = rosterRows
-    .slice(4)
+    .slice(SHEET_HEADER_ROWS)
     .filter(r => {
       if (!r[2] || !String(r[2]).trim()) return false;
       if (typeof r[0] === 'number') {
-        // sheetsSerialToDate returns a UTC midnight Date; reinterpret as local date
-        // by using its UTC y/m/d components to construct a local midnight.
         const d = sheetsSerialToDate(r[0]);
         const localMs = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
         return localMs >= todayMs;
@@ -216,7 +194,7 @@ async function fetchBulletinData(sheetId) {
   const windowEnd = svcDate ? new Date(svcDate.getFullYear(), svcDate.getMonth() + 2, 0) : null;
 
   const events = eventRows
-    .slice(4)
+    .slice(SHEET_HEADER_ROWS)
     .filter(r => {
       if (!(r[0] || '').trim()) return false;
       if ((r[5] || '').trim().toLowerCase() === 'no') return false;
@@ -237,7 +215,11 @@ async function fetchBulletinData(sheetId) {
     }));
 
   const settings = toKV(settingsRows);
-  const notificationEmails = (settings['Notification Emails'] || '').split(',').map(e => e.trim()).filter(Boolean);
+  const notificationEmails = (settings['Notification Emails'] || '')
+    .split(',')
+    .map(e => e.trim())
+    .filter(e => e && validateEmail(e));
+
   const churchInfo = {
     seniorPastorName:  settings['Senior Pastor Name']     || 'Rev Colin Wun',
     seniorPastorPhone: settings['Senior Pastor Phone']    || '0434 190 205',
@@ -258,8 +240,6 @@ async function fetchBulletinData(sheetId) {
       name: (r[2] || '').trim() || 'Document'
     }));
 
-  // Theme cells are stored as "Letter | Word | Description" in Settings rows
-  // "Theme Cell 1" through "Theme Cell 4". Falls back to current CACV defaults.
   const defaultThemeCells = [
     { letter: 'H', word: 'Healthy Relationships',       desc: 'with God and with others' },
     { letter: 'O', word: 'On Mission',                  desc: 'Everyone, everywhere, all the time' },
@@ -283,10 +263,13 @@ async function fetchBulletinData(sheetId) {
 }
 
 async function updateRunStatus(sheetId, status, errors = []) {
-  const token = await getAccessToken(process.env.CREDENTIALS_PATH, SCOPES);
+  const token = await getAccessToken(config.CREDENTIALS_PATH, SCOPES);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/'⚙️  Settings'!A:A`;
 
-  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+  const res = await fetch(url, { 
+    headers: { 'Authorization': `Bearer ${token}` },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT)
+  });
   const data = await res.json();
   const rows = data.values || [];
 

@@ -19,6 +19,40 @@ The system transforms a **Google Sheet** (filled by the admin team) into a **liv
 
 ---
 
+## 🏁 Getting Started
+
+### Prerequisites
+- **Node.js:** v20.0.0 or higher
+- **Google Chrome / Chromium:** Installed on your system (required for PDF generation)
+- **qpdf:** Installed on your system (required for PDF password protection)
+  - macOS: `brew install qpdf`
+  - Linux: `sudo apt-get install qpdf`
+
+### Installation
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/phoaar/cacv-bulletin-automation.git
+    cd cacv-bulletin-automation
+    ```
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Setup Environment Variables:**
+    - Copy `.env.example` to `.env`.
+    - Fill in the required API keys and configuration (see [Environment Setup](#-environment-setup) below).
+4.  **Setup Google Credentials:**
+    - Place your Google Service Account JSON key at `./credentials/service-account.json` (or the path defined in your `.env`).
+
+### Running Locally
+To generate a bulletin from your local machine:
+```bash
+npm start
+```
+This will fetch the latest data from the sheet, generate HTML/PDF outputs in the `output/` directory, and attempt to publish to WordPress/Email if configured.
+
+---
+
 ## 📖 Documentation Index
 
 ### [👤 User & Admin Guide](./docs/ADMIN_GUIDE.md)
