@@ -227,13 +227,12 @@ async function main() {
   let wpPublished = false;
   if (canPublishWordPress()) {
     if (allIssues.length > 0) {
-      console.warn(`WordPress publish skipped — ${allIssues.length} issues detected. Fix these to enable auto-publish.`);
-    } else {
-      console.log('Publishing to WordPress…');
-      wpPublished = await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
-      if (!wpPublished) {
-        allIssues.push('WordPress publish failed — bulletin may not be live on the CACV website');
-      }
+      console.warn(`⚠️ Proceeding with WordPress publish despite ${allIssues.length} issues.`);
+    }
+    console.log('Publishing to WordPress…');
+    wpPublished = await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
+    if (!wpPublished) {
+      allIssues.push('WordPress publish failed — bulletin may not be live on the CACV website');
     }
   } else {
     console.log('WordPress publish skipped: missing configuration (WP_URL, WP_USERNAME, WP_APP_PASSWORD, or WP_PAGE_ID).');
