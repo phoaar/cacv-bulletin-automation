@@ -371,6 +371,32 @@ function buildBulletin(data, failures) {
     letter-spacing: 0.01em;
   }
 
+  /* ── BIBLE BUTTONS (SMALL) ── */
+  #cacv-bulletin-root .bible-btns-sm {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  #cacv-bulletin-root .bible-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--fog);
+    background: var(--white);
+    color: #5C82A8 !important;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background 0.15s;
+    box-shadow: none !important;
+  }
+  #cacv-bulletin-root .bible-btn-sm:hover {
+    background: var(--sand);
+    border-color: var(--slate);
+  }
+
   /* ── LAYOUT ── */
   #cacv-bulletin-root .page {
     max-width: 740px;
@@ -449,6 +475,7 @@ function buildBulletin(data, failures) {
     transition: background 0.15s;
     cursor: default;
     list-style-type: none !important;
+    flex-wrap: wrap;
   }
   #cacv-bulletin-root .order-row:hover { background: var(--sand); }
   #cacv-bulletin-root .order-idx {
@@ -463,8 +490,8 @@ function buildBulletin(data, failures) {
   }
   #cacv-bulletin-root .order-row.focus .order-idx { background: rgba(139,165,196,0.2); color: #5C82A8; }
   #cacv-bulletin-root .order-row.focus .order-name { color: var(--ink); font-weight: 600; }
-  #cacv-bulletin-root .order-name { font-size: 14.5px; flex: 1; }
-  #cacv-bulletin-root .order-sub { font-size: 12.5px; color: var(--muted); font-style: italic; }
+  #cacv-bulletin-root .order-name { font-size: 14.5px; flex: 1; min-width: 140px; }
+  #cacv-bulletin-root .order-sub { font-size: 12.5px; color: var(--muted); font-style: italic; margin-right: 10px; }
 
   /* ── SERVICE TEAM ── */
   #cacv-bulletin-root .team-grid {
