@@ -686,7 +686,6 @@ function scheduleCustom() {
     'To cancel, use Bulletin → ❌ Cancel Scheduled Run.',
     ui.ButtonSet.OK
   );
-  );
 }
 
 // ── SCHEDULED TRIGGER HANDLER ────────────────────────────────────────────────
