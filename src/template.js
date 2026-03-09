@@ -1121,7 +1121,7 @@ ${buildEvents(events)}
   const sections = ['order','team','announcements','prayer','roster','events','attendance','theme'];
   const btns = {};
   sections.forEach(id => {
-    btns[id] = document.querySelector(\`.nav-btn[href="#\${id}"]\`);
+    btns[id] = document.querySelector('.nav-btn[href="#' + id + '"]');
   });
 
   const observer = new IntersectionObserver((entries) => {
@@ -1155,7 +1155,7 @@ ${buildEvents(events)}
   });
 </script>
 </body>
-</html>\`;
+</html>`;
 }
 
 module.exports = { buildBulletin };
