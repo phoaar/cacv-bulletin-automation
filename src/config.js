@@ -18,7 +18,7 @@ module.exports = {
   
   // Translation
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-  ANTHROPIC_MODEL:   process.env.ANTHROPIC_MODEL || 'claude-3-5-haiku-latest',
+  ANTHROPIC_MODEL:   process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
   
   // WordPress
   WP_URL: process.env.WP_URL,
