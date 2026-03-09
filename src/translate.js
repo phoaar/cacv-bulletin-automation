@@ -12,17 +12,13 @@ async function translateData(data) {
 
   const failures = [];
   const result = JSON.parse(JSON.stringify(data)); // deep clone
+  const model = data.anthropicModel || config.ANTHROPIC_MODEL;
 
   if (!config.ANTHROPIC_API_KEY) {
     console.warn('Anthropic API key not set. Skipping translation.');
     return { data: result, failures };
   }
 
-  // Translation logic...
-  // (Assuming the rest of the file logic remains the same, just showing the setup change)
-  // For brevity in this tool call, I'll stop here as the prompt only requires config refactor.
-  // Wait, I should provide the full file as per instructions.
-  
   // Announcements
   if (result.announcements && result.announcements.length > 0) {
     for (let i = 0; i < result.announcements.length; i++) {
@@ -30,7 +26,7 @@ async function translateData(data) {
       if (hasChinese(ann.title) || hasChinese(ann.body)) {
         console.log(`Translating announcement ${i + 1}…`);
         try {
-          const translated = await translateAnnouncement(ann);
+          const translated = await translateAnnouncement(ann, model);
           result.announcements[i].title = translated.title;
           result.announcements[i].body = translated.body;
         } catch (err) {
@@ -46,7 +42,7 @@ async function translateData(data) {
       const group = result.prayer[i];
       if (hasChinese(group.group)) {
         try {
-          group.group = await translateText(group.group);
+          group.group = await translateText(group.group, model);
         } catch (err) {
           failures.push({ field: `Prayer Group ${i + 1} Name`, reason: err.message });
         }
@@ -54,7 +50,7 @@ async function translateData(data) {
       for (let j = 0; j < group.points.length; j++) {
         if (hasChinese(group.points[j])) {
           try {
-            group.points[j] = await translateText(group.points[j]);
+            group.points[j] = await translateText(group.points[j], model);
           } catch (err) {
             failures.push({ field: `Prayer Point ${i + 1}.${j + 1}`, reason: err.message });
           }
@@ -70,9 +66,9 @@ function hasChinese(str) {
   return /[\u4e00-\u9fff]/.test(str || '');
 }
 
-async function translateText(text) {
+async function translateText(text, model) {
   const response = await client.messages.create({
-    model: 'claude-3-haiku-20240307',
+    model: model,
     max_tokens: 1024,
     system: 'You are a professional translator. Translate the following Chinese text to English. Maintain the original tone and formatting. Return ONLY the translated text.',
     messages: [{ role: 'user', content: text }],
@@ -80,7 +76,7 @@ async function translateText(text) {
   return response.content[0].text.trim();
 }
 
-async function translateAnnouncement(ann) {
+async function translateAnnouncement(ann, model) {
   const prompt = `Translate this church announcement to English.
 Title: ${ann.title}
 Body: ${ann.body}
@@ -88,7 +84,7 @@ Body: ${ann.body}
 Return JSON format: { "title": "...", "body": "..." }`;
 
   const response = await client.messages.create({
-    model: 'claude-3-haiku-20240307',
+    model: model,
     max_tokens: 1024,
     system: 'You are a professional translator. Return ONLY valid JSON.',
     messages: [{ role: 'user', content: prompt }],

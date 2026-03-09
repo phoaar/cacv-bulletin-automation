@@ -45,9 +45,6 @@ function onOpen() {
     .addSeparator()
     .addItem('⚙️  Setup (first time)',       'setup')
     .addToUi();
-
-  applySheetProtections();
-  setupConditionalFormatting();
 }
 
 // ── SETUP (run once) ─────────────────────────────────────────────────────────
@@ -602,6 +599,11 @@ function scheduleForThisWeek() {
     .at(runTime)
     .create();
 
+  // Track who scheduled it
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('SCHEDULED_BY', Session.getActiveUser().getEmail());
+  props.setProperty('SCHEDULED_AT', runDateFormatted);
+
   ui.alert(
     '✓ Scheduled',
     'Bulletin will go live automatically on ' + runDateFormatted + '.\n\n' +
@@ -668,25 +670,35 @@ function scheduleCustom() {
 
   // Remove any existing scheduled trigger first
   deleteTriggers_();
-
   ScriptApp.newTrigger('onScheduledRun')
     .timeBased()
-    .at(runTime)
+    .at(date)
     .create();
+
+  // Track who scheduled it
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('SCHEDULED_BY', Session.getActiveUser().getEmail());
+  props.setProperty('SCHEDULED_AT', runDateFormatted);
 
   ui.alert(
     '✓ Scheduled',
-    'Bulletin will go live on ' + runDateFormatted + '.\n\n' +
+    'Bulletin will go live automatically on ' + runDateFormatted + '.\n\n' +
     'To cancel, use Bulletin → ❌ Cancel Scheduled Run.',
     ui.ButtonSet.OK
+  );
   );
 }
 
 // ── SCHEDULED TRIGGER HANDLER ────────────────────────────────────────────────
 
 function onScheduledRun() {
-  var success    = triggerGitHubWorkflow();
+  var success = triggerGitHubWorkflow();
+  var props   = PropertiesService.getScriptProperties();
   var recipients = getNotificationEmails_();
+
+  // Clear tracking metadata
+  props.deleteProperty('SCHEDULED_BY');
+  props.deleteProperty('SCHEDULED_AT');
 
   if (recipients.length > 0) {
     var cfg         = getConfig_();
@@ -718,12 +730,30 @@ function onScheduledRun() {
 // ── CANCEL SCHEDULE ──────────────────────────────────────────────────────────
 
 function cancelSchedule() {
-  var count = deleteTriggers_();
   var ui    = SpreadsheetApp.getUi();
+  var props = PropertiesService.getScriptProperties();
+  var scheduler   = props.getProperty('SCHEDULED_BY');
+  var scheduledAt = props.getProperty('SCHEDULED_AT');
+  var me          = Session.getActiveUser().getEmail();
+
+  var count = deleteTriggers_();
+  
   if (count > 0) {
+    props.deleteProperty('SCHEDULED_BY');
+    props.deleteProperty('SCHEDULED_AT');
     ui.alert('✓ Cancelled', 'The scheduled bulletin run has been cancelled.', ui.ButtonSet.OK);
   } else {
-    ui.alert('Nothing to cancel', 'No bulletin run is currently scheduled.', ui.ButtonSet.OK);
+    if (scheduler && scheduler !== me) {
+      ui.alert(
+        '⚠️ Ownership Warning',
+        'A bulletin run was scheduled for ' + scheduledAt + ' by ' + scheduler + '.\n\n' +
+        'Google security prevents you from cancelling another user\'s trigger.\n\n' +
+        'Please ask ' + scheduler + ' to cancel it from their account, or run "Generate Now" manually if needed.',
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert('Nothing to cancel', 'No bulletin run is currently scheduled for your account.', ui.ButtonSet.OK);
+    }
   }
 }
 

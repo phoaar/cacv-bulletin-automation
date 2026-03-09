@@ -258,8 +258,9 @@ async function fetchBulletinData(sheetId) {
   };
 
   const pdfPassword = (settings['PDF Password'] || '').trim();
+  const anthropicModel = (settings['Anthropic Model'] || config.ANTHROPIC_MODEL || '').trim();
 
-  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments, theme, pdfPassword };
+  return { service, order, announcements, prayer, roster, events, notificationEmails, churchInfo, pdfAttachments, theme, pdfPassword, anthropicModel };
 }
 
 async function updateRunStatus(sheetId, status, errors = []) {

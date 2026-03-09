@@ -29,8 +29,13 @@ The CACV English Bulletin is a "serverless" automation that converts data from a
 
 ## 🛠️ Maintenance Tasks
 
-### 1. Anthropic Credits (Quarterly)
-The translation engine requires credits. Monitor the balance at [console.anthropic.com](https://console.anthropic.com). If the balance hits $0, the bulletin will still generate but will contain untranslated Chinese text.
+### 1. Anthropic Credits & Models (Quarterly)
+The translation engine requires credits and uses the **Claude 3.5 Haiku** model.
+- Monitor the balance at [console.anthropic.com](https://console.anthropic.com).
+- **Error: 404 "not_found_error" (Model Deprecated):** If Anthropic retires the model being used, the script will fail with a 404. You can update the model ID in your `.env` file without changing the code:
+  ```bash
+  ANTHROPIC_MODEL=claude-3-5-haiku-latest
+  ```
 
 ### 2. WordPress Page Layout
 The script pushes to the page using the `elementor_canvas` template to ensure a clean, edge-to-edge look.
