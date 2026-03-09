@@ -22,13 +22,19 @@ function canPublishWordPress() {
  * Inline CSS, extract body content, rewrite image paths, and wrap for Gutenberg.
  */
 function prepareContent(html, liveUrl) {
-  const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-  const originalStyles = styleMatch ? styleMatch[1] : '';
+  // Extract ALL style tags
+  const styleMatches = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  const styles = styleMatches.map(m => m.replace(/<\/?style[^>]*>/gi, '')).join('\n');
 
-  const inlined = juice(html);
+  // Extract content inside #cacv-bulletin-root
+  const rootMatch = html.match(/<div id="cacv-bulletin-root"[^>]*>([\s\S]*?)<\/div>\s*<script/i);
+  let content = rootMatch ? rootMatch[1] : html;
 
-  const bodyMatch = inlined.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  let content = bodyMatch ? bodyMatch[1] : inlined;
+  // Final fallback if regex failed to find the root div precisely
+  if (!rootMatch) {
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    content = bodyMatch ? bodyMatch[1] : html;
+  }
 
   content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
   content = content.replace(/\bon\w+="[^"]*"/gi, '');
@@ -50,14 +56,22 @@ function prepareContent(html, liveUrl) {
 
   const canvasStyle = `
     <style>
-      ${originalStyles}
+      ${styles}
       
+      /* Reset WordPress container interference */
+      #cacv-bulletin-root,
       body, .site, #page, #content, #primary, .site-content, .site-main, 
       .entry-content, .ast-container, .elementor, .elementor-section, .elementor-container { 
         max-width: 100% !important; 
         width: 100% !important; 
         margin: 0 !important; 
         padding: 0 !important; 
+      }
+
+      #cacv-bulletin-root {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
       }
 
       .hero, .sermon-strip, .sticky-nav, footer {
@@ -71,17 +85,18 @@ function prepareContent(html, liveUrl) {
         max-width: 740px; 
       }
 
+      /* Force hidden elements to stay hidden */
       .order-list li::before, .order-list li::after, .order-row::before, .order-row::after,
       li::before, li::after, .grecaptcha-badge, .rc-anchor-center-item, .rc-anchor-error-message { 
         content: none !important; display: none !important; visibility: hidden !important; opacity: 0 !important;
       }
       
-      ul, li { list-style: none !important; }
-      a { text-decoration: none !important; box-shadow: none !important; border: none !important; }
+      #cacv-bulletin-root ul, #cacv-bulletin-root li { list-style: none !important; }
+      #cacv-bulletin-root a { text-decoration: none !important; box-shadow: none !important; border: none !important; }
     </style>
   `;
 
-  content = GOOGLE_FONTS_LINK + '\n' + canvasStyle + '\n' + content;
+  content = GOOGLE_FONTS_LINK + '\n' + canvasStyle + '\n<div id="cacv-bulletin-root">' + content + '</div>';
 
   return `<!-- wp:html -->\n${content}\n<!-- /wp:html -->`;
 }
