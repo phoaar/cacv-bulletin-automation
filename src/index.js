@@ -226,27 +226,31 @@ async function main() {
   // ── Publish to WordPress ───────────────────────────────────────────────────
   let wpPublished = false;
   if (canPublishWordPress()) {
-    console.log('Publishing to WordPress…');
-    wpPublished = await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
-    if (!wpPublished) {
-      allIssues.push('WordPress publish failed — bulletin may not be live on the CACV website');
+    if (allIssues.length > 0) {
+      console.warn(`WordPress publish skipped — ${allIssues.length} issues detected. Fix these to enable auto-publish.`);
+    } else {
+      console.log('Publishing to WordPress…');
+      wpPublished = await publishToWordPress({ title: `Bulletin — ${serviceDate}`, html, liveUrl: data.liveUrl });
+      if (!wpPublished) {
+        allIssues.push('WordPress publish failed — bulletin may not be live on the CACV website');
+      }
     }
   } else {
-    console.log('WordPress publish skipped (WP_URL / WP_USERNAME / WP_APP_PASSWORD / WP_PAGE_ID not configured).');
+    console.log('WordPress publish skipped: missing configuration (WP_URL, WP_USERNAME, WP_APP_PASSWORD, or WP_PAGE_ID).');
   }
 
   // ── Send notifications ─────────────────────────────────────────────────────
   if (canSendEmail()) {
+    console.log(`Email configuration found (User: ${config.GMAIL_USER}).`);
     if (allIssues.length > 0) {
-      console.log('Sending failure notification…');
+      console.log(`Sending failure notification for ${allIssues.length} issues…`);
       await notifyFailures({ to, serviceDate, liveUrl: config.LIVE_URL, issues: allIssues });
     } else {
-      // Only notify success once WordPress has confirmed the page is live
       console.log('Sending success notification…');
       await notifySuccess({ to, serviceDate, liveUrl: config.LIVE_URL, pdfPath });
     }
   } else {
-    console.log('Email notifications skipped (GMAIL_USER / GMAIL_APP_PASSWORD not configured).');
+    console.log('Email notifications skipped: missing GMAIL_USER or GMAIL_APP_PASSWORD.');
   }
 
   // ── Update sheet status ────────────────────────────────────────────────────
