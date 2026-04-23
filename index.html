@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CACV Bulletin — Sunday, 15 March 2026</title>
+<title>CACV Bulletin — 29/3/2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
   #cacv-bulletin-root {
@@ -279,6 +279,32 @@
     letter-spacing: 0.01em;
   }
 
+  /* ── BIBLE BUTTONS (SMALL) ── */
+  #cacv-bulletin-root .bible-btns-sm {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  #cacv-bulletin-root .bible-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--fog);
+    background: var(--white);
+    color: #5C82A8 !important;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background 0.15s;
+    box-shadow: none !important;
+  }
+  #cacv-bulletin-root .bible-btn-sm:hover {
+    background: var(--sand);
+    border-color: var(--slate);
+  }
+
   /* ── LAYOUT ── */
   #cacv-bulletin-root .page {
     max-width: 740px;
@@ -357,6 +383,7 @@
     transition: background 0.15s;
     cursor: default;
     list-style-type: none !important;
+    flex-wrap: wrap;
   }
   #cacv-bulletin-root .order-row:hover { background: var(--sand); }
   #cacv-bulletin-root .order-idx {
@@ -371,8 +398,8 @@
   }
   #cacv-bulletin-root .order-row.focus .order-idx { background: rgba(139,165,196,0.2); color: #5C82A8; }
   #cacv-bulletin-root .order-row.focus .order-name { color: var(--ink); font-weight: 600; }
-  #cacv-bulletin-root .order-name { font-size: 14.5px; flex: 1; }
-  #cacv-bulletin-root .order-sub { font-size: 12.5px; color: var(--muted); font-style: italic; }
+  #cacv-bulletin-root .order-name { font-size: 14.5px; flex: 1; min-width: 140px; }
+  #cacv-bulletin-root .order-sub { font-size: 12.5px; color: var(--muted); font-style: italic; margin-right: 10px; }
 
   /* ── SERVICE TEAM ── */
   #cacv-bulletin-root .team-grid {
@@ -777,7 +804,7 @@
     <div class="bulletin-chip"><span class="chip-dot"></span> Weekly Bulletin</div>
     <div class="hero-service-tag">English Service</div>
     <h1 class="hero-title">Christian Alliance<br>Church of <em>Victoria</em></h1>
-    <p class="hero-date">Sunday, 15 March 2026</p>
+    <p class="hero-date">29/3/2026</p>
     <div class="hero-pills">
       <span class="hero-pill">10:30 am – 12:00 pm</span>
       <span class="hero-pill">Rentoul Hall, Burwood</span>
@@ -790,20 +817,11 @@
   <div class="sermon-inner">
     <div>
       <div class="sermon-eyebrow">This Week's Message</div>
-      <div class="sermon-title">Testimony Sharing</div>
-      <div class="sermon-ref">-</div>
-      <div class="bible-btns">
-        <a class="bible-btn" href="https://www.biblegateway.com/passage/?search=-&version=NIV" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h5.5a2 2 0 0 1 2 2v9l-1.5-1.5H2V3z"/><path d="M14 3H8.5a0 0 0 0 0 0 0v9l1.5-1.5H14V3z" stroke-opacity=".5"/></svg>
-          BibleGateway
-        </a>
-        <a class="bible-btn" href="https://www.bible.com/search/bible?q=-&version_id=111" target="_blank" rel="noopener">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="1" width="10" height="14" rx="1.5"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>
-          YouVersion
-        </a>
-      </div>
+      <div class="sermon-title"></div>
+      <div class="sermon-ref"></div>
+      
     </div>
-    <div class="preacher-tag">Test</div>
+    <div class="preacher-tag"></div>
   </div>
 </div>
 
@@ -855,13 +873,9 @@
       <li class="order-row"><div class="order-idx">2</div><span class="order-name">Worship</span></li>
       <li class="order-row"><div class="order-idx">3</div><span class="order-name">Offering</span></li>
       <li class="order-row"><div class="order-idx">4</div><span class="order-name">Welcoming</span></li>
-      <li class="order-row focus"><div class="order-idx">5</div><span class="order-name">Scripture Reading</span><span class="order-sub">-</span><span class="bible-btns-sm">
-        <a class="bible-btn-sm" href="https://www.biblegateway.com/passage/?search=-&version=NIV" target="_blank" rel="noopener">BibleGateway</a>
-        <a class="bible-btn-sm" href="https://www.bible.com/search/bible?q=-&version_id=111" target="_blank" rel="noopener">YouVersion</a>
-      </span></li>
-      <li class="order-row focus"><div class="order-idx">6</div><span class="order-name">Sermon</span><span class="order-sub">Testimony Sharing  —  Test</span></li>
-      <li class="order-row"><div class="order-idx">7</div><span class="order-name">Response Song</span></li>
-      <li class="order-row"><div class="order-idx">8</div><span class="order-name">Intercession</span></li>
+      <li class="order-row"><div class="order-idx">5</div><span class="order-name">Testimony Sharing</span></li>
+      <li class="order-row"><div class="order-idx">6</div><span class="order-name">Response Song</span></li>
+      <li class="order-row"><div class="order-idx">7</div><span class="order-name">Intercession</span></li>
     </ul>
   </section>
 
@@ -869,16 +883,15 @@
   <section class="card" id="team">
     <div class="card-label">Service Team</div>
     <div class="team-grid">
-      <div class="team-chip"><div class="team-role">Preacher</div><div class="team-name">Test</div></div>
       <div class="team-chip"><div class="team-role">Chairperson</div><div class="team-name">Aaron Pho</div></div>
-      <div class="team-chip"><div class="team-role">Worship</div><div class="team-name">Christopher Au</div></div>
-      <div class="team-chip"><div class="team-role">Music</div><div class="team-name">Youth Band</div></div>
-      <div class="team-chip"><div class="team-role">PowerPoint</div><div class="team-name">Conrad Kwok</div></div>
-      <div class="team-chip"><div class="team-role">PA / Sound</div><div class="team-name">Hong Cheng</div></div>
-      <div class="team-chip"><div class="team-role">Chief Usher</div><div class="team-name">Emily Au, Eden Law</div></div>
-      <div class="team-chip"><div class="team-role">Ushers</div><div class="team-name">Hubert Kwok, Samuel Lui</div></div>
-      <div class="team-chip"><div class="team-role">Flowers</div><div class="team-name">Candy &amp; Jett He</div></div>
-      <div class="team-chip"><div class="team-role">Morning Tea</div><div class="team-name">Alison Pho</div></div>
+      <div class="team-chip"><div class="team-role">Worship</div><div class="team-name">Emerald Tsui</div></div>
+      <div class="team-chip"><div class="team-role">Music</div><div class="team-name">Emerald Tsui</div></div>
+      <div class="team-chip"><div class="team-role">PowerPoint</div><div class="team-name">Isaac Lo</div></div>
+      <div class="team-chip"><div class="team-role">PA / Sound</div><div class="team-name">Henry Ko</div></div>
+      <div class="team-chip"><div class="team-role">Chief Usher</div><div class="team-name">Christopher Au</div></div>
+      <div class="team-chip"><div class="team-role">Ushers</div><div class="team-name">Kristina Dew, Isaac Ma</div></div>
+      <div class="team-chip"><div class="team-role">Flowers</div><div class="team-name">Sophie &amp; Anthony Tsui</div></div>
+      <div class="team-chip"><div class="team-role">Morning Tea</div><div class="team-name">Emerald Tsui</div></div>
     </div>
   </section>
 
@@ -889,15 +902,37 @@
       <div class="announce">
         <div class="announce-n">1</div>
         <div>
-          <div class="announce-t">Monthly Prayer Meeting — 24 Feb, 8:00 pm via Zoom</div>
-          <div class="announce-b">Come together on the last Tuesday of each month to give thanks and pray. Zoom link: us02web.zoom.us/j/85831129890</div>
+          <div class="announce-t">Cambodia Missions Visitation Trip</div>
+          <div class="announce-b">We are planning a missions visitation trip to Cambodia from 5–10 January 2027.  The purpose of this trip is to experience missionary work firsthand, encourage and support overseas missionaries, and be a blessing to the local community.  We will be partnering with Metta Mission &amp; Community Ministry for this visit.  If you are interested or would like to learn more details, please get in touch with Rev. Norman Chan or Isaac Lo as soon as possible.  We invite you to prayerfully consider being part of what God is doing in Cambodia.</div>
         </div>
       </div>
       <div class="announce">
         <div class="announce-n">2</div>
         <div>
-          <div class="announce-t">Travel Notice — April to June 2026</div>
-          <div class="announce-b">Planning to travel Apr–Jun? Email <a href="mailto:admin@cacv.org.au">admin@cacv.org.au</a> to notify the roster team.</div>
+          <div class="announce-t">Combined Services</div>
+          <div class="announce-b">A Combined Good Friday Service will be held on 3 April at 10:30am in our Church Chapel.  On Easter Sunday, a Combined Easter Service will be held at the Easter Camp site at 10:30am.  For those who are not attending the camp, a Chinese Easter Sunday Service will also be held at the Church Chapel at 10:30am.  Please join us as we remember Christ’s death and celebrate His resurrection together.</div>
+        </div>
+      </div>
+      <div class="announce">
+        <div class="announce-n">3</div>
+        <div>
+          <div class="announce-t">Monthly Prayer Meeting — 31 March, 8:00 pm via Zoom</div>
+          <div class="announce-b">Come join our prayer meeting on the last Tuesday of each month!  It will be on the 31st of March, 8pm on Zoom.  Let us come together to give thanks to the Lord and to pray for our needs, for the church, and for others in the community.
+<a href="https://us02web.zoom.us/j/85831129890?pwd=SGEyZDNhYkhHK0xMTTZSVU5KVVRwUT09" target="_blank" rel="noopener">https://us02web.zoom.us/j/85831129890?pwd=SGEyZDNhYkhHK0xMTTZSVU5KVVRwUT09</a></div>
+        </div>
+      </div>
+      <div class="announce">
+        <div class="announce-n">4</div>
+        <div>
+          <div class="announce-t">Good News</div>
+          <div class="announce-b">Congratulations to Edwina and Gary Cheng for their newborn baby Luna Wan Ching on 3rd March!  Thank God for a smooth and safe delivery.</div>
+        </div>
+      </div>
+      <div class="announce">
+        <div class="announce-n">5</div>
+        <div>
+          <div class="announce-t">Daylight Saving</div>
+          <div class="announce-b">Daylight Saving ends on next Sunday, 5 April!  Please don’t forget to turn your clocks backward one hour before you head to bed on Saturday night.</div>
         </div>
       </div>
     </div>
@@ -910,23 +945,29 @@
       <div>
         <div class="prayer-group-head">For the World</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Pray for those suffering in wars — Israel, Palestine, Ukraine and Russia. Pray for peace, justice, and the gospel's hope and reconciliation.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for mercy on those suffering in wars and conflicts, especially in the Middle East, Israel, Palestine, Ukraine, and Russia.  Pray for an end to violence, the establish peace and justice, and that the gospel would bring hope and reconciliation in these dark places.</div>
         </div>
       </div>
       <div>
         <div class="prayer-group-head">For Our International Workers</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Chris &amp; Amy (Indonesia): protection, a fruitful mission trip, and children settling into home schooling.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Josh &amp; Jaclyn (Cambodia): funds for Ruang Studio's 13 staff and timely production of Top &amp; Toe Season 1.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Thibaut &amp; Naoual (France): open hearts among Afghan people, asylum seekers and international students.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Please pray for the Ooi's visa renewal applications that they will be granted the extension to stay in Japan.  Pray also for the many HiBA events that many students will be impacted by the Biblical teaching, testimonies and fellowship with each other.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for God’s protection for Chris, Amy and the children in Indonesia.  Pray for the mission trip that the team will be a blessing wherever they go.  Pray also for the children to settle back into home schooling.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for Josh and Jaclyn in Cambodia, that the Lord would graciously provide sufficient funds for the Ruang Studio to sustain their 13 local staff. Pray also for the smooth and timely production of the next five episodes of Top &amp; Toe, Season 1.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Please pray for Thibaut and Naoual in France as they reach out to Afghan people, asylum seekers in reception centers, and international students. Pray that the Lord would open hearts to receive His love and truth through their ministry.</div>
         </div>
       </div>
       <div>
         <div class="prayer-group-head">For Our Church</div>
         <div class="prayer-items">
-        <div class="prayer-item"><div class="prayer-pip"></div>Rentoul Hall: God's guidance and unity through the renovation process.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Easter Camp (3–6 April): hearts prepared to rise and live for Jesus.</div>
-        <div class="prayer-item"><div class="prayer-pip"></div>Community Food Pantry: continued supply and committed volunteers.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Praise God for His provision of Rentoul Hall.  Please continue to pray for God’s guidance, clear vision and unity throughout the renovation process and as we faithfully steward these spaces for His glory and the growth of His ministry.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for our upcoming Easter Camp (3–6 April), that we will truly experience the power of the risen Christ and be inspired to rise and live for Jesus.  Ask God to prepare our hearts and to use every message, activity, and conversation to renew our faith and lead us to surrender our lives afresh to Him.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for the CACV Community Food Pantry as it continues to serve those in need.  Ask God to continue supplying food resources and to raise up committed volunteers for this vital ministry.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for our youth in Youth Sunday School and Reverb Fellowship that God will grow their faith, build godly friendships, and draw them closer to Christ.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for our Livingstones fellowship group to outreach and build community among our university students.  Pray as they learn to explore faith alongside managing studies in this busy academic season.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Praise God for our worship team who faithfully lead us in worship week after week.  Pray for God’s continued anointing upon them, and may our worship bring glory to the Lord.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for the children’s ministry and the children’s worship.  Pray for God’s wisdom and guidance for the leaders so that children’s faith will be nurtured and their love for God will grow.</div>
+        <div class="prayer-item"><div class="prayer-pip"></div>Pray for our small group ministry, for the leaders and members.  Pray that everyone will join, participate, and grow in fellowship through small groups, deepening their relationships with God and one another.</div>
         </div>
       </div>
     </div>
@@ -939,13 +980,10 @@
       <table class="tbl">
         <thead><tr><th>Date</th><th>Preacher</th><th>Chair</th><th>Worship</th><th>Music</th><th>PP</th><th>PA</th><th>Chief Usher</th><th>Ushers</th><th>Morning Tea</th></tr></thead>
         <tbody>
-          <tr><td>15 Mar 2026</td><td>Testimony Sharing</td><td>Aaron Pho</td><td>Christopher Au</td><td>Youth Band</td><td>Conrad Kwok</td><td>Hong Cheng</td><td>Emily Au, Eden Law</td><td>Hubert Kwok, Samuel Lui</td><td>Alison Pho</td></tr>
-          <tr><td>22 Mar 2026</td><td>TBC</td><td>Eden Law</td><td>Connie G</td><td>Kristina Dew</td><td>Oscar Ng</td><td>Aaron Pho</td><td>Enoch Truong, Emerald Tsui</td><td>Angela Li, Sophie Ng</td><td>Christopher Au</td></tr>
-          <tr><td>3 Apr 2026</td><td>Rev Colin Wun</td><td>Jim Wong</td><td>Rina Hui
- Emerald Tsui
- Candy He</td><td>Flora Lam</td><td>Anhi Truong</td><td>Jay Ng</td><td>Eric Ko</td><td>Ling Hung, Fai Hung</td><td></td></tr>
-          <tr><td>5 Apr 2026</td><td>Ps Kwok Kit Chan</td><td>Ken Wan</td><td>Bonnie Man
- Hong Cheng</td><td>Eunice Man</td><td>John Ng</td><td>Ivan Wong</td><td>Henry Ko</td><td>Sandra Ho, Hubert kwok</td><td></td></tr>
+          <tr><td>10 May 2026</td><td>Ms Queenie Chan</td><td>Wilfred Kwok</td><td>Bonnie Man, Catherine Au, Agnes Wong</td><td>Eunice Man</td><td>Jeremy Lam</td><td>Anhi Truong</td><td>Tennie Lau</td><td>Pui Lan Yip, Kone Yip</td><td>YFA</td></tr>
+          <tr><td>17 May 2026</td><td>Testimony Sharing</td><td>Aaron Pho</td><td>Christopher Au</td><td>Catherine Au</td><td>Isaac Lo</td><td>Hong Cheng</td><td>Emerald Tsui</td><td>Angela Li, Sandra Ho</td><td>Eden Law</td></tr>
+          <tr><td>24 May 2026</td><td>Ms Susie Huynh</td><td>Tony Cheung</td><td>Hong Cheng</td><td>Kristina Dew</td><td>Joshua Ho</td><td>Henry Ko</td><td>Alison Pho</td><td>Jeremy Man, Sophie Ng</td><td>Christopher Au</td></tr>
+          <tr><td>14 Jun 2026</td><td>Ms Susie Huynh</td><td>Tony Cheung</td><td>Christopher Au</td><td>Reverb Band</td><td>Conrad Kwok</td><td>Henry Ko</td><td>Catherine Au</td><td>Angela Li, Hubert Kwok</td><td>Emily Au</td></tr>
         </tbody>
       </table>
     </div>
@@ -958,7 +996,8 @@
       <table class="tbl">
         <thead><tr><th>Month</th><th>Day</th><th>Event</th><th>Responsible</th></tr></thead>
         <tbody>
-          <tr><td>April</td><td>3–6</td><td>Easter Camp 2026</td><td>Nelson Kwok / Hong Cheng / Aaron Pho</td></tr>
+          <tr><td>April</td><td>2 Thu</td><td>Women's Group</td><td>Jessie Lam</td></tr>
+          <tr><td></td><td>3–6</td><td>Easter Camp 2026</td><td>Nelson Kwok / Hong Cheng / Aaron Pho</td></tr>
         </tbody>
       </table>
     </div>
@@ -968,9 +1007,9 @@
   <section class="card" id="attendance">
     <div class="card-label">Last Week's Attendance</div>
     <div class="att-grid">
-      <div class="att-cell"><div class="att-n">1</div><div class="att-l">English Service</div></div>
-      <div class="att-cell"><div class="att-n">1</div><div class="att-l">Chinese Service</div></div>
-      <div class="att-cell"><div class="att-n">1</div><div class="att-l">Children's Service</div></div>
+      <div class="att-cell"><div class="att-n">40</div><div class="att-l">English Service</div></div>
+      <div class="att-cell"><div class="att-n">133</div><div class="att-l">Chinese Service</div></div>
+      <div class="att-cell"><div class="att-n">52</div><div class="att-l">Children's Service</div></div>
     </div>
   </section>
 
@@ -1080,7 +1119,7 @@
     </div>
     <div class="footer-base">
       <span>&copy; 2026 Christian Alliance Church of Victoria</span>
-      <span style="opacity:0.8">Build #73 (cbe776a)</span>
+      <span style="opacity:0.8">Build #74 (f75749b)</span>
       <span>C&amp;MA Member Church</span>
     </div>
   </div>
